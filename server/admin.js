@@ -158,6 +158,7 @@ export function listSubmissionsForAdmin(db, query) {
   const items = db
     .prepare(
       `SELECT
+        submit_id,
         id,
         invoice_type,
         invoice_title,

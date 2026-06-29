@@ -412,6 +412,7 @@
           <table>
             <thead>
               <tr>
+                <th>提交ID</th>
                 <th>提交时间</th>
                 <th>门店</th>
                 <th>抬头 / 类型</th>
@@ -420,7 +421,6 @@
                 <th>附件</th>
                 <th>联系方式</th>
                 <th>备注</th>
-                <th>ID</th>
                 <th>操作</th>
               </tr>
             </thead>
@@ -545,6 +545,12 @@
         for (const item of items) {
           const row = document.createElement("tr");
 
+          row.appendChild(
+            createCell(
+              item.submit_id === null || item.submit_id === undefined ? "无" : String(item.submit_id),
+              "mono"
+            )
+          );
           row.appendChild(createCell(formatDate(item.created_at)));
           row.appendChild(createCell("", ""));
           row.lastChild.appendChild(createTag(storeLabels[item.store_key] || item.store_key || "未知"));
@@ -581,7 +587,6 @@
 
           row.appendChild(createCell(item.contact || "无"));
           row.appendChild(createCell(item.note || "无"));
-          row.appendChild(createCell(item.id || "", "mono"));
 
           const actionsCell = document.createElement("td");
           actionsCell.className = "actions-cell";

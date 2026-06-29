@@ -476,6 +476,7 @@ test("管理员可以分页查看提交记录", async () => {
     assert.equal(payload.success, true);
     assert.equal(payload.total, 1);
     assert.equal(payload.items.length, 1);
+    assert.equal(payload.items[0].submit_id, 2);
     assert.equal(payload.items[0].id, "submission-b");
     assert.equal(payload.items[0].attachment_name, "invoice-b.pdf");
   });
