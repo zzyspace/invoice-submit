@@ -702,6 +702,7 @@
         const uploadMeta = document.getElementById("upload-meta");
         const submitButton = document.getElementById("submit-button");
         const feedback = document.getElementById("form-feedback");
+        const defaultSubmitButtonLabel = "保存并提交开票信息";
 
         const allowedAttachmentTypes = new Set([
           "image/png",
@@ -747,6 +748,16 @@
           return storeKey;
         }
 
+        function setSubmitButtonState({
+          disabled = false,
+          label = defaultSubmitButtonLabel,
+          type = "submit",
+        } = {}) {
+          submitButton.disabled = disabled;
+          submitButton.textContent = label;
+          submitButton.type = type;
+        }
+
         function setInvoiceType(value) {
           invoiceTypeInput.value = value;
           typeButtons.forEach((button) => {
@@ -754,6 +765,29 @@
             button.classList.toggle("active", isActive);
             button.setAttribute("aria-pressed", String(isActive));
           });
+        }
+
+        function closeCurrentPage() {
+          if (window.WeixinJSBridge && typeof window.WeixinJSBridge.call === "function") {
+            window.WeixinJSBridge.call("closeWindow");
+            return;
+          }
+
+          if (window.AlipayJSBridge && typeof window.AlipayJSBridge.call === "function") {
+            window.AlipayJSBridge.call("closeWebview");
+            return;
+          }
+
+          window.open("", "_self");
+          window.close();
+
+          window.setTimeout(() => {
+            if (document.visibilityState === "hidden") {
+              return;
+            }
+
+            setFeedback("已提交成功。如当前浏览器不允许直接关闭，请手动关闭此页面。", "success");
+          }, 300);
         }
 
         function validateAttachment(file) {
@@ -813,6 +847,15 @@
           attachmentInput.dispatchEvent(new Event("change"));
         });
 
+        submitButton.addEventListener("click", (event) => {
+          if (submitButton.type !== "button") {
+            return;
+          }
+
+          event.preventDefault();
+          closeCurrentPage();
+        });
+
         form.addEventListener("submit", async (event) => {
           event.preventDefault();
           setFeedback("", "");
@@ -846,8 +889,11 @@
             return;
           }
 
-          submitButton.disabled = true;
-          submitButton.textContent = "提交中...";
+          let submissionSucceeded = false;
+          setSubmitButtonState({
+            disabled: true,
+            label: "提交中...",
+          });
 
           try {
             const response = await fetch("/api/submissions", {
@@ -873,7 +919,8 @@
             setInvoiceType("enterprise");
             syncStoreKey();
             syncAttachmentUi();
-            setFeedback("提交成功，我们已收到开票信息。请关闭此页面。", "success");
+            submissionSucceeded = true;
+            setFeedback("提交成功，我们已收到开票信息。可点击下方按钮关闭此页面。", "success");
           } catch (error) {
             const message =
               error instanceof Error && error.message
@@ -881,14 +928,21 @@
                 : "提交失败，请稍后重试。";
             setFeedback(message, "error");
           } finally {
-            submitButton.disabled = false;
-            submitButton.textContent = "保存并提交开票信息";
+            if (submissionSucceeded) {
+              setSubmitButtonState({
+                label: "关闭此页面",
+                type: "button",
+              });
+              return;
+            }
+
+            setSubmitButtonState();
           }
         });
 
         setInvoiceType(invoiceTypeInput.value || "enterprise");
         if (!syncStoreKey()) {
-          submitButton.disabled = true;
+          setSubmitButtonState({ disabled: true });
           setFeedback("当前链接无效，请使用门店提供的专属开票链接。", "error");
         }
         syncAttachmentUi();
