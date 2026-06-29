@@ -45,6 +45,72 @@ npm run dev
 - `./.data/data/app.db`
 - `./.data/uploads/`
 
+## 首次部署
+
+服务器当前方案：
+
+- Web 入口：`http://<server-ip>:8080/`
+- Nginx 对外监听：`8080`
+- Node 服务监听：`127.0.0.1:8787`
+
+首次部署步骤：
+
+1. 安装基础包
+
+```bash
+apt update
+apt install -y nginx sqlite3 curl git
+```
+
+2. 创建目录
+
+```bash
+mkdir -p /opt/invoice-submit
+mkdir -p /var/lib/invoice-submit/data
+mkdir -p /var/lib/invoice-submit/uploads
+```
+
+3. 拉取代码
+
+```bash
+git clone https://github.com/zzyspace/invoice-submit.git /opt/invoice-submit/current
+cd /opt/invoice-submit/current
+```
+
+4. 安装依赖并构建
+
+```bash
+npm install --omit=dev
+npm run build
+```
+
+5. 安装 `systemd` 服务
+
+```bash
+cp deploy/systemd/invoice-submit.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now invoice-submit.service
+```
+
+6. 安装 Nginx 配置
+
+```bash
+cp deploy/nginx/invoice-submit.conf /etc/nginx/sites-available/invoice-submit
+ln -sf /etc/nginx/sites-available/invoice-submit /etc/nginx/sites-enabled/invoice-submit
+rm -f /etc/nginx/sites-enabled/default
+nginx -t
+systemctl enable --now nginx
+systemctl reload nginx
+```
+
+7. 验证
+
+```bash
+curl http://127.0.0.1:8787/healthz
+curl http://127.0.0.1:8080/healthz
+curl -I http://127.0.0.1:8080/
+```
+
 ## 生产目录
 
 生产环境固定目录：
@@ -68,6 +134,44 @@ INVOICE_SUBMIT_DATA_ROOT=/var/lib/invoice-submit
 mkdir -p /var/lib/invoice-submit/data
 mkdir -p /var/lib/invoice-submit/uploads
 ```
+
+## 数据库结构
+
+当前 SQLite 只有一张业务表：
+
+- `submissions`
+
+字段如下：
+
+- `id TEXT PRIMARY KEY`
+  - 提交记录唯一 ID
+- `invoice_type TEXT NOT NULL`
+  - 开票主体类型，值为 `enterprise` 或 `personal`
+- `invoice_title TEXT NOT NULL`
+  - 发票抬头
+- `tax_number TEXT`
+  - 税号，选填
+- `email TEXT NOT NULL`
+  - 接收电子发票的邮箱
+- `contact TEXT`
+  - 联系方式，选填
+- `note TEXT`
+  - 备注信息，选填
+- `attachment_path TEXT NOT NULL`
+  - 服务器本地附件完整路径
+- `attachment_name TEXT NOT NULL`
+  - 用户上传时的原始文件名
+- `attachment_content_type TEXT NOT NULL`
+  - 附件 MIME 类型，例如 `image/png`
+- `attachment_size_bytes INTEGER NOT NULL`
+  - 附件大小，单位字节
+- `created_at TEXT NOT NULL`
+  - 提交时间，ISO 8601 格式
+
+索引如下：
+
+- `idx_submissions_created_at`
+- `idx_submissions_email`
 
 ## Nginx
 
@@ -96,6 +200,13 @@ systemctl daemon-reload
 systemctl enable --now invoice-submit.service
 ```
 
+查看运行状态：
+
+```bash
+systemctl status --no-pager invoice-submit.service
+systemctl status --no-pager nginx
+```
+
 ## 安全组
 
 对外开放：
@@ -106,6 +217,124 @@ systemctl enable --now invoice-submit.service
 Node 服务只监听本机：
 
 - `127.0.0.1:8787`
+
+## 更新发布
+
+后续每次更新代码：
+
+```bash
+cd /opt/invoice-submit/current
+git pull --ff-only origin main
+npm install --omit=dev
+npm run build
+systemctl restart invoice-submit.service
+systemctl reload nginx
+```
+
+发布后快速验证：
+
+```bash
+curl http://127.0.0.1:8080/healthz
+```
+
+## 运维手册
+
+### 查看服务日志
+
+```bash
+journalctl -u invoice-submit.service -f
+tail -f /var/log/nginx/access.log /var/log/nginx/error.log
+```
+
+### 查看最近提交记录
+
+```bash
+sqlite3 /var/lib/invoice-submit/data/app.db \
+  "select id, invoice_type, invoice_title, email, attachment_path, created_at from submissions order by created_at desc limit 20;"
+```
+
+### 查看已上传附件
+
+```bash
+find /var/lib/invoice-submit/uploads -type f | tail -n 20
+```
+
+### 重启服务
+
+```bash
+systemctl restart invoice-submit.service
+systemctl reload nginx
+```
+
+### 备份数据库
+
+```bash
+mkdir -p /var/backups/invoice-submit
+cp /var/lib/invoice-submit/data/app.db /var/backups/invoice-submit/app-$(date +%F-%H%M%S).db
+```
+
+### 备份附件
+
+```bash
+mkdir -p /var/backups/invoice-submit
+tar -czf /var/backups/invoice-submit/uploads-$(date +%F-%H%M%S).tar.gz /var/lib/invoice-submit/uploads
+```
+
+## 常见排障
+
+### 页面打不开
+
+先检查：
+
+```bash
+curl http://127.0.0.1:8080/healthz
+systemctl status --no-pager nginx
+ss -lntp | grep 8080
+```
+
+### Nginx 返回 502
+
+说明 Nginx 没连上 Node，检查：
+
+```bash
+curl http://127.0.0.1:8787/healthz
+systemctl status --no-pager invoice-submit.service
+journalctl -u invoice-submit.service -n 100 --no-pager
+```
+
+### 提交失败但页面能打开
+
+先看应用日志：
+
+```bash
+journalctl -u invoice-submit.service -n 100 --no-pager
+```
+
+再确认数据库和上传目录权限：
+
+```bash
+ls -ld /var/lib/invoice-submit
+ls -ld /var/lib/invoice-submit/data
+ls -ld /var/lib/invoice-submit/uploads
+```
+
+### 附件没有落盘
+
+检查：
+
+```bash
+find /var/lib/invoice-submit/uploads -type f | tail
+journalctl -u invoice-submit.service -n 100 --no-pager
+```
+
+### 数据库记录没有写入
+
+检查：
+
+```bash
+sqlite3 /var/lib/invoice-submit/data/app.db ".tables"
+sqlite3 /var/lib/invoice-submit/data/app.db "select count(*) from submissions;"
+```
 
 ## 业务规则
 
