@@ -12,6 +12,7 @@
 - `invoice-form-concept.html`：前端单页源码
 - `public/`：构建后的静态资源
 - `server/`：Express 服务、表单校验、SQLite 写入
+- `deploy/deploy-invoice-submit.sh`：一键部署脚本
 - `db/init.sql`：SQLite 初始化 SQL
 - `deploy/nginx/invoice-submit.conf`：Nginx 配置模板
 - `deploy/systemd/invoice-submit.service`：systemd 服务模板
@@ -59,7 +60,7 @@ npm run dev
 
 ```bash
 apt update
-apt install -y nginx sqlite3 curl git
+apt install -y nginx sqlite3 curl git nodejs npm
 ```
 
 2. 创建目录
@@ -77,14 +78,32 @@ git clone https://github.com/zzyspace/invoice-submit.git /opt/invoice-submit/cur
 cd /opt/invoice-submit/current
 ```
 
-4. 安装依赖并构建
+4. 执行部署脚本
+
+```bash
+sudo bash deploy/deploy-invoice-submit.sh local
+```
+
+脚本会自动完成：
+
+- `git pull --ff-only origin main`
+- `npm install --omit=dev`
+- `npm run build`
+- 安装 `systemd` 服务文件
+- 安装 Nginx 配置并校验
+- 重启 `invoice-submit.service`
+- 校验 `healthz`
+
+手动方式如下。
+
+5. 安装依赖并构建
 
 ```bash
 npm install --omit=dev
 npm run build
 ```
 
-5. 安装 `systemd` 服务
+6. 安装 `systemd` 服务
 
 ```bash
 cp deploy/systemd/invoice-submit.service /etc/systemd/system/
@@ -92,7 +111,7 @@ systemctl daemon-reload
 systemctl enable --now invoice-submit.service
 ```
 
-6. 安装 Nginx 配置
+7. 安装 Nginx 配置
 
 ```bash
 cp deploy/nginx/invoice-submit.conf /etc/nginx/sites-available/invoice-submit
@@ -103,7 +122,7 @@ systemctl enable --now nginx
 systemctl reload nginx
 ```
 
-7. 验证
+8. 验证
 
 ```bash
 curl http://127.0.0.1:8787/healthz
@@ -223,18 +242,19 @@ Node 服务只监听本机：
 后续每次更新代码：
 
 ```bash
-cd /opt/invoice-submit/current
-git pull --ff-only origin main
-npm install --omit=dev
-npm run build
-systemctl restart invoice-submit.service
-systemctl reload nginx
+bash deploy/deploy-invoice-submit.sh root@<server-ip>
 ```
 
 发布后快速验证：
 
 ```bash
 curl http://127.0.0.1:8080/healthz
+```
+
+如果脚本直接在服务器上执行：
+
+```bash
+sudo bash deploy/deploy-invoice-submit.sh local
 ```
 
 ## 运维手册
