@@ -250,6 +250,32 @@
         white-space: nowrap;
       }
 
+      .tag-type {
+        min-height: 24px;
+        padding: 0 9px;
+        border-radius: 999px;
+        font-size: 12px;
+      }
+
+      .tag-type-enterprise {
+        background: rgba(49, 92, 75, 0.14);
+        color: var(--brand);
+      }
+
+      .tag-type-personal {
+        background: rgba(196, 111, 63, 0.16);
+        color: #9a532d;
+      }
+
+      .tag-type-neutral {
+        background: rgba(109, 98, 84, 0.14);
+        color: var(--ink-soft);
+      }
+
+      .title-meta {
+        margin-top: 8px;
+      }
+
       .attachment-link {
         color: var(--accent);
         font-weight: 700;
@@ -372,9 +398,9 @@
                 <th>抬头 / 类型</th>
                 <th>税号</th>
                 <th>邮箱</th>
+                <th>附件</th>
                 <th>联系方式</th>
                 <th>备注</th>
-                <th>附件</th>
                 <th>ID</th>
               </tr>
             </thead>
@@ -478,6 +504,20 @@
         return span;
       }
 
+      function createTypeTag(invoiceType) {
+        const span = document.createElement("span");
+        const typeLabel = typeLabels[invoiceType] || invoiceType || "未知";
+        const typeClass =
+          invoiceType === "enterprise"
+            ? "tag-type-enterprise"
+            : invoiceType === "personal"
+              ? "tag-type-personal"
+              : "tag-type-neutral";
+        span.className = `tag tag-type ${typeClass}`;
+        span.textContent = typeLabel;
+        return span;
+      }
+
       function renderRows(items) {
         recordsBody.textContent = "";
 
@@ -491,16 +531,14 @@
           const titleCell = document.createElement("td");
           const titleStrong = document.createElement("div");
           titleStrong.textContent = item.invoice_title || "无";
-          const typeText = document.createElement("div");
-          typeText.className = "muted";
-          typeText.textContent = typeLabels[item.invoice_type] || item.invoice_type || "未知";
-          titleCell.append(titleStrong, typeText);
+          const typeWrap = document.createElement("div");
+          typeWrap.className = "title-meta";
+          typeWrap.appendChild(createTypeTag(item.invoice_type));
+          titleCell.append(titleStrong, typeWrap);
           row.appendChild(titleCell);
 
           row.appendChild(createCell(item.tax_number || "无"));
           row.appendChild(createCell(item.email || "无"));
-          row.appendChild(createCell(item.contact || "无"));
-          row.appendChild(createCell(item.note || "无"));
 
           const attachmentCell = document.createElement("td");
           const attachmentLink = document.createElement("a");
@@ -520,6 +558,8 @@
           attachmentCell.append(attachmentLink, attachmentMeta);
           row.appendChild(attachmentCell);
 
+          row.appendChild(createCell(item.contact || "无"));
+          row.appendChild(createCell(item.note || "无"));
           row.appendChild(createCell(item.id || "", "mono"));
           recordsBody.appendChild(row);
         }
