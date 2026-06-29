@@ -24,7 +24,6 @@
         --brand-3: #dde0da;
         --success: #2d4a3f;
         --shadow: 0 18px 40px rgba(27, 29, 27, 0.08);
-        --progress-track-bg: rgba(23, 25, 23, 0.08);
         --badge-bg: #f3f5f2;
         --pill-bg: #f4f5f2;
         --pill-soft-bg: #f5f5f2;
@@ -44,6 +43,7 @@
         --upload-filled-bg: #ffffff;
         --upload-plus-bg: #ffffff;
         --upload-plus-border: rgba(23, 25, 23, 0.06);
+        --cta-bg: #007aff;
         --cta-ink: #ffffff;
         --feedback-error-bg: #fff2ed;
         --feedback-error-border: #f1cbbb;
@@ -60,49 +60,49 @@
       @media (prefers-color-scheme: dark) {
         :root {
           color-scheme: dark;
-          --bg: #101513;
-          --bg-accent: #161d1a;
-          --ink: #edf1ec;
-          --ink-soft: #a4afa8;
-          --surface: #18201d;
-          --surface-strong: #1c2622;
-          --phone-bg: rgba(18, 24, 22, 0.96);
-          --phone-border: rgba(222, 231, 225, 0.08);
-          --phone-shadow: 0 28px 72px rgba(0, 0, 0, 0.42);
-          --line: rgba(222, 231, 225, 0.1);
-          --line-strong: rgba(222, 231, 225, 0.18);
-          --brand: #8fb6a5;
-          --brand-2: #6f8a7e;
-          --brand-3: #2b3933;
-          --success: #8bc09c;
+          --bg: #0b0b0f;
+          --bg-accent: #14151a;
+          --ink: #ffffff;
+          --ink-soft: #98989f;
+          --surface: #1c1c1e;
+          --surface-strong: #1c1c1e;
+          --phone-bg: rgba(10, 10, 12, 0.96);
+          --phone-border: rgba(84, 84, 88, 0.5);
+          --phone-shadow: 0 28px 72px rgba(0, 0, 0, 0.48);
+          --line: rgba(84, 84, 88, 0.45);
+          --line-strong: rgba(84, 84, 88, 0.78);
+          --brand: #0a84ff;
+          --brand-2: #8e8e93;
+          --brand-3: #2c2c2e;
+          --success: #64d2ff;
           --shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
-          --progress-track-bg: rgba(222, 231, 225, 0.12);
-          --badge-bg: #202a26;
-          --pill-bg: #202923;
-          --pill-soft-bg: #202923;
-          --accent-pill-bg: rgba(159, 73, 42, 0.18);
-          --accent-pill-border: rgba(240, 195, 175, 0.24);
-          --accent-pill-ink: #f5b798;
-          --danger-ink: #e8b199;
-          --segment-bg: #202923;
-          --segment-active-bg: #26322d;
-          --focus-ring: rgba(143, 182, 165, 0.5);
-          --focus-ring-soft: rgba(143, 182, 165, 0.32);
-          --input-bg: #121917;
-          --input-border: rgba(222, 231, 225, 0.1);
-          --placeholder: rgba(237, 241, 236, 0.42);
-          --upload-border: rgba(222, 231, 225, 0.18);
-          --upload-bg: #141b18;
-          --upload-filled-bg: #1c2622;
-          --upload-plus-bg: #26322d;
-          --upload-plus-border: rgba(222, 231, 225, 0.08);
-          --cta-ink: #0f1513;
+          --badge-bg: #2c2c2e;
+          --pill-bg: #2c2c2e;
+          --pill-soft-bg: #2c2c2e;
+          --accent-pill-bg: rgba(255, 159, 10, 0.18);
+          --accent-pill-border: rgba(255, 159, 10, 0.28);
+          --accent-pill-ink: #ffb340;
+          --danger-ink: #ffb340;
+          --segment-bg: #2c2c2e;
+          --segment-active-bg: #3a3a3c;
+          --focus-ring: rgba(10, 132, 255, 0.52);
+          --focus-ring-soft: rgba(10, 132, 255, 0.34);
+          --input-bg: #2c2c2e;
+          --input-border: rgba(84, 84, 88, 0.58);
+          --placeholder: rgba(235, 235, 245, 0.3);
+          --upload-border: rgba(84, 84, 88, 0.72);
+          --upload-bg: #2c2c2e;
+          --upload-filled-bg: #3a3a3c;
+          --upload-plus-bg: #3a3a3c;
+          --upload-plus-border: rgba(255, 255, 255, 0.08);
+          --cta-bg: #0a84ff;
+          --cta-ink: #ffffff;
           --feedback-error-bg: rgba(159, 73, 42, 0.16);
           --feedback-error-border: rgba(241, 203, 187, 0.22);
           --feedback-error-ink: #f2baa2;
-          --feedback-success-bg: rgba(45, 74, 63, 0.28);
-          --feedback-success-border: rgba(199, 223, 206, 0.16);
-          --feedback-success-ink: #b8dcc3;
+          --feedback-success-bg: rgba(10, 132, 255, 0.2);
+          --feedback-success-border: rgba(100, 210, 255, 0.2);
+          --feedback-success-ink: #9ddcff;
         }
       }
 
@@ -151,7 +151,7 @@
       }
 
       .hero {
-        padding: 0 2px 12px;
+        padding: 48px 2px 12px;
         border-bottom: 1px solid var(--line);
       }
 
@@ -168,24 +168,6 @@
         font-size: 14px;
         line-height: 1.68;
         color: var(--ink-soft);
-      }
-
-      .progress {
-        margin-top: 16px;
-      }
-
-      .progress-track {
-        height: 6px;
-        border-radius: 999px;
-        background: var(--progress-track-bg);
-        overflow: hidden;
-      }
-
-      .progress-value {
-        width: 68%;
-        height: 100%;
-        border-radius: inherit;
-        background: var(--brand);
       }
 
       .section-card {
@@ -466,7 +448,7 @@
         font-size: 16px;
         font-weight: 700;
         color: var(--cta-ink);
-        background: var(--brand);
+        background: var(--cta-bg);
       }
 
       .cta:disabled {
@@ -519,12 +501,6 @@
             <div>
               <h1>开票信息</h1>
               <p>请填写开票信息，我们将会在2个工作日内将电子发票发送到指定邮箱。若2个工作日内没有收到，请检查垃圾邮件或联系门店，我们会为您及时处理。</p>
-            </div>
-
-            <div class="progress">
-              <div class="progress-track">
-                <div class="progress-value"></div>
-              </div>
             </div>
           </section>
 

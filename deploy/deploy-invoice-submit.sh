@@ -37,6 +37,26 @@ Notes:
 EOF
 }
 
+wait_for_http_ok() {
+  local label="$1"
+  local url="$2"
+  local attempts="${3:-30}"
+  local sleep_seconds="${4:-1}"
+  local attempt
+
+  for ((attempt = 1; attempt <= attempts; attempt++)); do
+    if curl --fail --silent --show-error "${url}" >/dev/null 2>&1; then
+      echo "[deploy] ${label} is healthy"
+      return 0
+    fi
+
+    sleep "${sleep_seconds}"
+  done
+
+  echo "[deploy] ${label} failed health check: ${url}" >&2
+  return 1
+}
+
 run_release() {
   set -euo pipefail
 
@@ -110,8 +130,17 @@ run_release() {
   systemctl reload nginx
 
   echo "[deploy] Verifying health endpoints"
-  curl --fail --silent --show-error "${HEALTHZ_NODE_URL}" >/dev/null
-  curl --fail --silent --show-error "${HEALTHZ_WEB_URL}" >/dev/null
+  if ! wait_for_http_ok "Application health endpoint" "${HEALTHZ_NODE_URL}" 30 1; then
+    systemctl --no-pager --full status "${SERVICE_NAME}" || true
+    journalctl -u "${SERVICE_NAME}" -n 100 --no-pager || true
+    exit 1
+  fi
+
+  if ! wait_for_http_ok "Web health endpoint" "${HEALTHZ_WEB_URL}" 30 1; then
+    systemctl --no-pager --full status nginx || true
+    systemctl --no-pager --full status "${SERVICE_NAME}" || true
+    exit 1
+  fi
 
   echo "[deploy] Service status"
   systemctl --no-pager --full status "${SERVICE_NAME}"
@@ -129,5 +158,5 @@ if [[ "${SERVER}" == "local" || "${SERVER}" == "localhost" ]]; then
 elif [[ -d "${APP_DIR}/.git" && "${SERVER}" == "${DEFAULT_SERVER}" ]]; then
   run_release
 else
-  ssh "${SSH_OPTS[@]}" "${SERVER}" "$(declare -f run_release); APP_DIR='${APP_DIR}'; DATA_ROOT='${DATA_ROOT}'; SERVICE_NAME='${SERVICE_NAME}'; SYSTEMD_UNIT_DIR='${SYSTEMD_UNIT_DIR}'; NGINX_SITE_NAME='${NGINX_SITE_NAME}'; NGINX_AVAILABLE_DIR='${NGINX_AVAILABLE_DIR}'; NGINX_ENABLED_DIR='${NGINX_ENABLED_DIR}'; HEALTHZ_NODE_URL='${HEALTHZ_NODE_URL}'; HEALTHZ_WEB_URL='${HEALTHZ_WEB_URL}'; run_release"
+  ssh "${SSH_OPTS[@]}" "${SERVER}" "$(declare -f wait_for_http_ok); $(declare -f run_release); APP_DIR='${APP_DIR}'; DATA_ROOT='${DATA_ROOT}'; SERVICE_NAME='${SERVICE_NAME}'; SYSTEMD_UNIT_DIR='${SYSTEMD_UNIT_DIR}'; NGINX_SITE_NAME='${NGINX_SITE_NAME}'; NGINX_AVAILABLE_DIR='${NGINX_AVAILABLE_DIR}'; NGINX_ENABLED_DIR='${NGINX_ENABLED_DIR}'; HEALTHZ_NODE_URL='${HEALTHZ_NODE_URL}'; HEALTHZ_WEB_URL='${HEALTHZ_WEB_URL}'; run_release"
 fi
