@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>开票信息提交</title>
+    <style>
+      :root {
+        --bg: #f2f1ec;
+        --bg-accent: #eceae4;
+        --ink: #171917;
+        --ink-soft: #6b716c;
+        --surface: #ffffff;
+        --surface-strong: #ffffff;
+        --line: rgba(23, 25, 23, 0.08);
+        --line-strong: rgba(23, 25, 23, 0.14);
+        --brand: #24362f;
+        --brand-2: #8c938f;
+        --brand-3: #dde0da;
+        --success: #2d4a3f;
+        --shadow: 0 18px 40px rgba(27, 29, 27, 0.08);
+        --radius-xl: 26px;
+        --radius-lg: 20px;
+        --radius-md: 14px;
+        --radius-sm: 10px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: "SF Pro Display", "PingFang SC", "Noto Sans SC", sans-serif;
+        background: linear-gradient(180deg, var(--bg) 0%, var(--bg-accent) 100%);
+        color: var(--ink);
+      }
+
+      .stage {
+        width: 100%;
+        min-height: 100vh;
+        padding: 48px 24px;
+        display: grid;
+        place-items: center;
+      }
+
+      .phone {
+        width: 430px;
+        border-radius: 34px;
+        background: rgba(255, 255, 255, 0.98);
+        border: 1px solid rgba(23, 25, 23, 0.06);
+        box-shadow: 0 24px 64px rgba(24, 26, 24, 0.09);
+        overflow: hidden;
+      }
+
+      .screen {
+        padding: 20px 20px 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .form-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 8px 0;
+        font-size: 14px;
+        color: rgba(23, 25, 23, 0.82);
+      }
+
+      .notch {
+        width: 126px;
+        height: 28px;
+        border-radius: 999px;
+        background: rgba(16, 21, 20, 0.92);
+        margin: 0 auto 4px;
+      }
+
+      .hero {
+        padding: 8px 2px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .hero-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .hero h1 {
+        margin: 0 0 10px;
+        font-size: 32px;
+        line-height: 1.04;
+        letter-spacing: -0.04em;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: none;
+        font-size: 14px;
+        line-height: 1.68;
+        color: var(--ink-soft);
+      }
+
+      .trust {
+        min-width: 92px;
+        padding: 0;
+        text-align: right;
+      }
+
+      .trust .label {
+        font-size: 11px;
+        color: var(--ink-soft);
+      }
+
+      .trust strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .progress {
+        margin-top: 18px;
+      }
+
+      .progress-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        font-size: 12px;
+        color: var(--ink-soft);
+      }
+
+      .progress-track {
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(23, 25, 23, 0.08);
+        overflow: hidden;
+      }
+
+      .progress-value {
+        width: 68%;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--brand);
+      }
+
+      .section-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-xl);
+        padding: 18px;
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .section-title-wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .badge-num {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        flex: none;
+        background: #f3f5f2;
+        color: var(--brand);
+        font-weight: 600;
+        font-size: 12px;
+      }
+
+      .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .section-subtitle {
+        margin-top: 4px;
+        font-size: 12px;
+        color: var(--ink-soft);
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 11px;
+        border-radius: 999px;
+        background: #f4f5f2;
+        color: var(--ink-soft);
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .tag-required {
+        width: 40px;
+        height: 25px;
+        padding: 0;
+        justify-content: center;
+        flex: none;
+        background: #fff0e9;
+        border: 1px solid #f0c3af;
+        color: #9f492a;
+      }
+
+      .section-title-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .tag-inline-required {
+        height: 24px;
+        padding: 0 8px;
+        justify-content: center;
+        flex: none;
+        background: #fff0e9;
+        border: 1px solid #f0c3af;
+        color: #9f492a;
+      }
+
+      .segmented {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .segmented button {
+        border: 1px solid transparent;
+        border-radius: 16px;
+        padding: 14px 16px;
+        font: inherit;
+        text-align: left;
+        background: #f6f6f3;
+        color: var(--ink);
+      }
+
+      .segmented button strong {
+        display: block;
+        font-size: 15px;
+        margin-bottom: 0;
+      }
+
+      .segmented .active {
+        background: #ffffff;
+        border-color: var(--line-strong);
+      }
+
+      .segmented button:focus-visible {
+        outline: 2px solid rgba(36, 54, 47, 0.28);
+        outline-offset: 2px;
+      }
+
+      .field-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .field {
+        padding: 14px 14px 16px;
+        border-radius: 20px;
+        background: var(--surface-strong);
+        border: 1px solid var(--line);
+      }
+
+      .field-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+
+      .label-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .field label {
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .required {
+        color: #7a3b28;
+      }
+
+      .optional {
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: #f5f5f2;
+        color: var(--ink-soft);
+        font-size: 11px;
+      }
+
+      .helper {
+        margin-bottom: 10px;
+        font-size: 12px;
+        line-height: 1.55;
+        color: var(--ink-soft);
+      }
+
+      .input-shell {
+        width: 100%;
+        height: 50px;
+        padding: 0 14px;
+        border-radius: 14px;
+        background: #fafaf7;
+        border: 1px solid rgba(23, 25, 23, 0.07);
+        color: var(--ink);
+        font-size: 15px;
+        font-family: inherit;
+        appearance: none;
+      }
+
+      .input-shell::placeholder {
+        color: rgba(23, 25, 23, 0.42);
+      }
+
+      .input-shell:focus {
+        outline: 2px solid rgba(36, 54, 47, 0.18);
+        outline-offset: 2px;
+      }
+
+      .textarea-shell {
+        min-height: 104px;
+        height: auto;
+        padding-top: 14px;
+        padding-bottom: 14px;
+        resize: vertical;
+        line-height: 1.65;
+      }
+
+      .upload-shell {
+        display: block;
+      }
+
+      .upload-dropzone {
+        height: 120px;
+        border-radius: 18px;
+        border: 1px dashed rgba(23, 25, 23, 0.18);
+        background: #f7f7f4;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        color: var(--brand);
+        cursor: pointer;
+        padding: 16px;
+      }
+
+      .upload-dropzone.is-filled {
+        border-style: solid;
+        background: #ffffff;
+      }
+
+      .upload-dropzone .plus {
+        width: 36px;
+        height: 36px;
+        margin: 0 auto 8px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: #ffffff;
+        border: 1px solid rgba(23, 25, 23, 0.06);
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .upload-title {
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .upload-meta {
+        margin-top: 8px;
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--ink-soft);
+        word-break: break-all;
+      }
+
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+        white-space: nowrap;
+      }
+
+      .footer-card {
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        padding: 0;
+      }
+
+      .cta {
+        height: 56px;
+        width: 100%;
+        border: 0;
+        border-radius: 18px;
+        font: inherit;
+        font-size: 16px;
+        font-weight: 700;
+        color: #ffffff;
+        background: var(--brand);
+      }
+
+      .cta:disabled {
+        opacity: 0.72;
+        cursor: wait;
+      }
+
+      .cta-row {
+        display: block;
+      }
+
+      .form-feedback {
+        margin: 2px 0 4px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .form-feedback[data-variant="error"] {
+        background: #fff2ed;
+        border: 1px solid #f1cbbb;
+        color: #9f492a;
+      }
+
+      .form-feedback[data-variant="success"] {
+        background: #edf7f0;
+        border: 1px solid #c7dfce;
+        color: #2d4a3f;
+      }
+
+      @media (max-width: 520px) {
+        .stage {
+          padding: 0;
+        }
+
+        .phone {
+          width: 100%;
+          min-height: 100vh;
+          border-radius: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <div class="phone">
+        <div class="screen">
+          <div class="notch"></div>
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>5G 92%</span>
+          </div>
+
+          <section class="hero">
+              <div class="hero-top">
+                <div>
+                  <h1>开票信息</h1>
+                  <p>请填写开票信息，我们将会在2个工作日内将电子发票发送到指定邮箱。若2个工作日内没有收到，请检查垃圾邮件或联系门店，我们会为您及时处理。</p>
+                </div>
+              </div>
+
+            <div class="progress">
+              <div class="progress-meta">
+                <span>资料填写进度</span>
+                <span>02 / 03</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-value"></div>
+              </div>
+            </div>
+          </section>
+
+          <form id="invoice-form" class="form-stack" novalidate enctype="multipart/form-data">
+            <input id="invoice-type" name="invoiceType" type="hidden" value="enterprise" />
+
+            <section class="section-card">
+              <div class="section-header">
+                <div class="section-title-wrap">
+                  <div class="badge-num">01</div>
+                  <div>
+                    <div class="section-title">开票主体</div>
+                    <div class="section-subtitle">先确认是企业还是个人，再填写主体信息。</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="segmented" role="group" aria-label="开票主体类型">
+                <button class="active" type="button" data-invoice-type="enterprise" aria-pressed="true">
+                  <strong>企业</strong>
+                </button>
+                <button type="button" data-invoice-type="personal" aria-pressed="false">
+                  <strong>个人</strong>
+                </button>
+              </div>
+
+              <div class="field-grid">
+                <div class="field">
+                  <div class="field-top">
+                    <div class="label-group">
+                      <label for="invoice-title">发票抬头</label>
+                      <span class="tag tag-inline-required">必填</span>
+                    </div>
+                  </div>
+                  <input
+                    id="invoice-title"
+                    class="input-shell"
+                    name="invoiceTitle"
+                    type="text"
+                    autocomplete="organization"
+                    maxlength="120"
+                    placeholder="请输入公司名称或个人姓名"
+                    required
+                  />
+                </div>
+
+                <div class="field">
+                  <div class="field-top">
+                    <div class="label-group">
+                      <label for="tax-number">税号</label>
+                      <span class="optional">选填</span>
+                    </div>
+                  </div>
+                  <div class="helper">若选择个人开票，可暂不填写；企业开票建议录入统一社会信用代码。</div>
+                  <input
+                    id="tax-number"
+                    class="input-shell"
+                    name="taxNumber"
+                    type="text"
+                    inputmode="text"
+                    maxlength="64"
+                    placeholder="请输入纳税人识别号"
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section class="section-card">
+              <div class="section-header">
+                <div class="section-title-wrap">
+                  <div class="badge-num">02</div>
+                  <div>
+                    <div class="section-title">接收信息</div>
+                    <div class="section-subtitle">请填写邮箱用于接收电子发票</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field-grid">
+                <div class="field">
+                  <div class="field-top">
+                    <div class="label-group">
+                      <label for="email">邮箱</label>
+                      <span class="tag tag-inline-required">必填</span>
+                    </div>
+                  </div>
+                  <input
+                    id="email"
+                    class="input-shell"
+                    name="email"
+                    type="email"
+                    autocomplete="email"
+                    maxlength="160"
+                    placeholder="finance@company.com"
+                    required
+                  />
+                </div>
+
+                <div class="field">
+                  <div class="field-top">
+                    <div class="label-group">
+                      <label for="contact">联系方式</label>
+                      <span class="optional">选填</span>
+                    </div>
+                  </div>
+                  <input
+                    id="contact"
+                    class="input-shell"
+                    name="contact"
+                    type="text"
+                    autocomplete="tel"
+                    maxlength="64"
+                    placeholder="选填手机号码，便于异常情况联系"
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section class="section-card">
+              <div class="section-header">
+                <div class="section-title-wrap">
+                  <div class="badge-num">03</div>
+                  <div>
+                    <div class="section-title-row">
+                      <div class="section-title">付款凭证</div>
+                      <span class="tag tag-required">必填</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="upload-shell">
+                <label class="upload-dropzone" id="attachment-dropzone" for="attachment">
+                  <div>
+                    <div class="plus" aria-hidden="true">+</div>
+                    <div class="upload-title" id="upload-title">上传文件</div>
+                    <div class="upload-meta" id="upload-meta" hidden></div>
+                  </div>
+                </label>
+                <input
+                  id="attachment"
+                  class="visually-hidden"
+                  name="attachment"
+                  type="file"
+                  accept=".png,.jpg,.jpeg,.pdf,image/png,image/jpeg,application/pdf"
+                  required
+                />
+              </div>
+            </section>
+
+            <section class="section-card">
+              <div class="section-header">
+                <div class="section-title-wrap">
+                  <div class="badge-num">04</div>
+                  <div>
+                    <div class="section-title-row">
+                      <div class="section-title">补充备注</div>
+                      <span class="tag">选填</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <textarea
+                id="note"
+                class="input-shell textarea-shell"
+                name="note"
+                rows="4"
+                maxlength="500"
+                placeholder="如果需要备注项目名称、开票内容或特殊抬头格式，可填写在这里。"
+              ></textarea>
+            </section>
+
+            <p id="form-feedback" class="form-feedback" hidden role="status" aria-live="polite"></p>
+
+            <section class="footer-card">
+              <div class="cta-row">
+                <button id="submit-button" class="cta" type="submit">保存并提交开票信息</button>
+              </div>
+            </section>
+          </form>
+        </div>
+      </div>
+    </main>
+    <script>
+      (() => {
+        const form = document.getElementById("invoice-form");
+        if (!form) return;
+
+        const invoiceTypeInput = document.getElementById("invoice-type");
+        const typeButtons = Array.from(document.querySelectorAll("[data-invoice-type]"));
+        const invoiceTitleInput = document.getElementById("invoice-title");
+        const emailInput = document.getElementById("email");
+        const attachmentInput = document.getElementById("attachment");
+        const attachmentDropzone = document.getElementById("attachment-dropzone");
+        const uploadTitle = document.getElementById("upload-title");
+        const uploadMeta = document.getElementById("upload-meta");
+        const submitButton = document.getElementById("submit-button");
+        const feedback = document.getElementById("form-feedback");
+
+        const allowedAttachmentTypes = new Set([
+          "image/png",
+          "image/jpeg",
+          "application/pdf",
+        ]);
+        const maxAttachmentBytes = 20 * 1024 * 1024;
+
+        function setFeedback(message, variant) {
+          if (!message) {
+            feedback.hidden = true;
+            feedback.textContent = "";
+            feedback.removeAttribute("data-variant");
+            return;
+          }
+
+          feedback.hidden = false;
+          feedback.textContent = message;
+          feedback.dataset.variant = variant;
+        }
+
+        function formatBytes(bytes) {
+          if (bytes < 1024 * 1024) {
+            return `${Math.max(1, Math.round(bytes / 1024))}KB`;
+          }
+
+          return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+        }
+
+        function setInvoiceType(value) {
+          invoiceTypeInput.value = value;
+          typeButtons.forEach((button) => {
+            const isActive = button.dataset.invoiceType === value;
+            button.classList.toggle("active", isActive);
+            button.setAttribute("aria-pressed", String(isActive));
+          });
+        }
+
+        function validateAttachment(file) {
+          if (!file) {
+            return "请上传付款凭证。";
+          }
+
+          if (!allowedAttachmentTypes.has(file.type)) {
+            return "仅支持 PNG、JPG、PDF 文件。";
+          }
+
+          if (file.size > maxAttachmentBytes) {
+            return "附件大小不能超过 20MB。";
+          }
+
+          return "";
+        }
+
+        function syncAttachmentUi() {
+          const file = attachmentInput.files && attachmentInput.files[0];
+          if (!file) {
+            uploadTitle.textContent = "上传文件";
+            uploadMeta.hidden = true;
+            uploadMeta.textContent = "";
+            attachmentDropzone.classList.remove("is-filled");
+            return;
+          }
+
+          uploadTitle.textContent = file.name;
+          uploadMeta.hidden = false;
+          uploadMeta.textContent = `${formatBytes(file.size)} · ${file.type || "未知类型"}`;
+          attachmentDropzone.classList.add("is-filled");
+        }
+
+        typeButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            setInvoiceType(button.dataset.invoiceType);
+          });
+        });
+
+        attachmentInput.addEventListener("change", () => {
+          syncAttachmentUi();
+        });
+
+        attachmentDropzone.addEventListener("dragover", (event) => {
+          event.preventDefault();
+        });
+
+        attachmentDropzone.addEventListener("drop", (event) => {
+          event.preventDefault();
+          const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+          if (!file) return;
+
+          const transfer = new DataTransfer();
+          transfer.items.add(file);
+          attachmentInput.files = transfer.files;
+          attachmentInput.dispatchEvent(new Event("change"));
+        });
+
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          setFeedback("", "");
+
+          if (!invoiceTitleInput.value.trim()) {
+            setFeedback("请填写发票抬头。", "error");
+            invoiceTitleInput.focus();
+            return;
+          }
+
+          if (!emailInput.value.trim()) {
+            setFeedback("请填写邮箱。", "error");
+            emailInput.focus();
+            return;
+          }
+
+          if (!emailInput.checkValidity()) {
+            setFeedback("请输入有效的邮箱地址。", "error");
+            emailInput.focus();
+            return;
+          }
+
+          const attachmentError = validateAttachment(attachmentInput.files && attachmentInput.files[0]);
+          if (attachmentError) {
+            setFeedback(attachmentError, "error");
+            return;
+          }
+
+          submitButton.disabled = true;
+          submitButton.textContent = "提交中...";
+
+          try {
+            const response = await fetch("/api/submissions", {
+              method: "POST",
+              body: new FormData(form),
+            });
+
+            let payload = null;
+            try {
+              payload = await response.json();
+            } catch (parseError) {
+              payload = null;
+            }
+
+            if (!response.ok || !payload || payload.success !== true) {
+              const message =
+                (payload && payload.error && payload.error.message) ||
+                "提交失败，请稍后重试。";
+              throw new Error(message);
+            }
+
+            form.reset();
+            setInvoiceType("enterprise");
+            syncAttachmentUi();
+            setFeedback("提交成功，我们已收到开票信息。", "success");
+          } catch (error) {
+            const message =
+              error instanceof Error && error.message
+                ? error.message
+                : "提交失败，请稍后重试。";
+            setFeedback(message, "error");
+          } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = "保存并提交开票信息";
+          }
+        });
+
+        setInvoiceType(invoiceTypeInput.value || "enterprise");
+        syncAttachmentUi();
+      })();
+    </script>
+  </body>
+</html>
