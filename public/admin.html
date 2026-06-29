@@ -659,6 +659,7 @@
           setStatus(error.message || "加载失败，请稍后重试。", true);
         } finally {
           state.loading = false;
+          renderRows(state.items);
           updateSummary();
         }
       }
