@@ -14,7 +14,8 @@ import { buildAttachmentRelativePath, createSubmissionRecord } from "../server/s
 
 const schemaSql = `
 CREATE TABLE IF NOT EXISTS submissions (
-  id TEXT PRIMARY KEY,
+  submit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id TEXT NOT NULL UNIQUE,
   invoice_type TEXT NOT NULL,
   invoice_title TEXT NOT NULL,
   tax_number TEXT,
@@ -95,8 +96,9 @@ test("企业开票时税号留空也能提交成功", async () => {
     assert.equal(payload.success, true);
 
     const row = db
-      .prepare("SELECT tax_number, store_key, attachment_path FROM submissions WHERE id = ?")
+      .prepare("SELECT submit_id, tax_number, store_key, attachment_path FROM submissions WHERE id = ?")
       .get(payload.id);
+    assert.equal(row.submit_id, 1);
     assert.equal(row.tax_number, null);
     assert.equal(row.store_key, "fuzzy");
     assert.equal(fs.existsSync(row.attachment_path), true);
@@ -268,7 +270,7 @@ test("数据库写入失败时会删除刚写入的附件", async () => {
   assert.equal(fs.existsSync(attachmentPath), false);
 });
 
-test("启动时会给旧 submissions 表补齐 store_key 列", () => {
+test("启动时会迁移旧 submissions 表并补齐 submit_id、store_key 列", () => {
   const tempDir = createTempDirectory();
   const dbFilePath = path.join(tempDir, "app.db");
   const dbInitSqlPath = path.join(tempDir, "init.sql");
@@ -292,13 +294,52 @@ CREATE TABLE submissions (
   created_at TEXT NOT NULL
 );
   `);
+  seedDb
+    .prepare(
+      `INSERT INTO submissions (
+        id,
+        invoice_type,
+        invoice_title,
+        tax_number,
+        email,
+        contact,
+        note,
+        attachment_path,
+        attachment_name,
+        attachment_content_type,
+        attachment_size_bytes,
+        created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+    .run(
+      "legacy-submission",
+      "enterprise",
+      "旧版记录",
+      null,
+      "legacy@example.com",
+      null,
+      null,
+      "/tmp/legacy.png",
+      "legacy.png",
+      "image/png",
+      3,
+      "2026-06-30T00:00:00.000Z"
+    );
   seedDb.close();
 
   const db = createDatabase({ dbFilePath, dbInitSqlPath });
 
   try {
     const columns = db.prepare("PRAGMA table_info(submissions)").all();
+    const submitIdColumn = columns.find((column) => column.name === "submit_id");
+    assert.equal(submitIdColumn?.pk, 1);
     assert.equal(columns.some((column) => column.name === "store_key"), true);
+    const row = db
+      .prepare("SELECT submit_id, id, store_key FROM submissions WHERE id = ?")
+      .get("legacy-submission");
+    assert.equal(row.submit_id, 1);
+    assert.equal(row.id, "legacy-submission");
+    assert.equal(row.store_key, null);
   } finally {
     db.close();
   }
@@ -482,5 +523,57 @@ test("管理员可以查看提交附件", async () => {
     assert.equal(response.headers.get("content-type"), "image/png");
     assert.match(response.headers.get("content-disposition"), /invoice-preview\.png/);
     assert.deepEqual(new Uint8Array(await response.arrayBuffer()), new Uint8Array([8, 9, 10]));
+  });
+});
+
+test("管理员可以删除提交记录并清理附件", async () => {
+  const db = createTestDatabase();
+  const tempDir = createTempDirectory();
+  const uploadsRoot = path.join(tempDir, "uploads");
+  const app = createApp({
+    db,
+    uploadDirectory: uploadsRoot,
+    staticDir: path.join(process.cwd(), "public"),
+    adminCredentials: { username: "admin", password: "secret-pass" },
+  });
+
+  const created = await createSubmissionRecord({
+    body: {
+      invoiceType: "enterprise",
+      invoiceTitle: "待删除记录",
+      taxNumber: "",
+      email: "delete@example.com",
+      contact: "13600000000",
+      note: "删除测试",
+      storeKey: "fuzzy",
+    },
+    file: {
+      originalname: "delete-me.png",
+      mimetype: "image/png",
+      size: 3,
+      buffer: Buffer.from([11, 12, 13]),
+    },
+    db,
+    uploadsRoot,
+    now: new Date("2026-06-30T04:00:00Z"),
+    generateId: () => "submission-delete",
+  });
+
+  assert.equal(fs.existsSync(created.attachmentPath), true);
+
+  await withServer(app, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/admin/submissions/submission-delete`, {
+      method: "DELETE",
+      headers: createAdminAuthHeaders(),
+    });
+
+    assert.equal(response.status, 200);
+    const payload = await response.json();
+    assert.equal(payload.success, true);
+    assert.equal(payload.id, "submission-delete");
+
+    const remaining = db.prepare("SELECT id FROM submissions WHERE id = ?").get("submission-delete");
+    assert.equal(remaining, undefined);
+    assert.equal(fs.existsSync(created.attachmentPath), false);
   });
 });

@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import fsPromises from "node:fs/promises";
 import { timingSafeEqual } from "node:crypto";
 
 import { ALLOWED_STORE_KEYS } from "./submissions.js";
@@ -210,4 +211,35 @@ export function getSubmissionAttachment(db, submissionId) {
   }
 
   return record;
+}
+
+export async function deleteSubmissionForAdmin(db, submissionId) {
+  const existing = db
+    .prepare(
+      `SELECT
+        id,
+        attachment_path
+      FROM submissions
+      WHERE id = ?`
+    )
+    .get(submissionId);
+
+  if (!existing) {
+    return null;
+  }
+
+  db.prepare("DELETE FROM submissions WHERE id = ?").run(submissionId);
+
+  if (hasValue(existing.attachment_path)) {
+    try {
+      await fsPromises.rm(existing.attachment_path, { force: true });
+    } catch (error) {
+      // Database deletion is the source of truth. Attachment cleanup is best-effort.
+      console.warn(`Failed to remove attachment for submission ${submissionId}:`, error);
+    }
+  }
+
+  return {
+    id: existing.id,
+  };
 }

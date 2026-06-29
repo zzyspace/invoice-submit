@@ -286,6 +286,25 @@
         text-decoration: underline;
       }
 
+      .actions-cell {
+        white-space: nowrap;
+      }
+
+      .button-danger {
+        min-height: 36px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(155, 60, 35, 0.16);
+        background: rgba(155, 60, 35, 0.08);
+        color: var(--danger);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .button-danger:hover:not([disabled]) {
+        background: rgba(155, 60, 35, 0.14);
+      }
+
       .empty {
         padding: 28px 18px;
         color: var(--ink-soft);
@@ -402,6 +421,7 @@
                 <th>联系方式</th>
                 <th>备注</th>
                 <th>ID</th>
+                <th>操作</th>
               </tr>
             </thead>
             <tbody id="records-body"></tbody>
@@ -434,6 +454,7 @@
         total: 0,
         items: [],
         loading: false,
+        deletingIds: new Set(),
       };
 
       const storeLabels = {
@@ -561,6 +582,19 @@
           row.appendChild(createCell(item.contact || "无"));
           row.appendChild(createCell(item.note || "无"));
           row.appendChild(createCell(item.id || "", "mono"));
+
+          const actionsCell = document.createElement("td");
+          actionsCell.className = "actions-cell";
+          const deleteButton = document.createElement("button");
+          deleteButton.type = "button";
+          deleteButton.className = "button-danger";
+          deleteButton.dataset.action = "delete";
+          deleteButton.dataset.submissionId = item.id || "";
+          deleteButton.disabled = state.loading || state.deletingIds.has(item.id);
+          deleteButton.textContent = state.deletingIds.has(item.id) ? "删除中..." : "删除";
+          actionsCell.appendChild(deleteButton);
+          row.appendChild(actionsCell);
+
           recordsBody.appendChild(row);
         }
       }
@@ -624,6 +658,55 @@
         }
       }
 
+      async function deleteSubmission(submissionId) {
+        const item = state.items.find((entry) => entry.id === submissionId);
+
+        if (!item) {
+          return;
+        }
+
+        const confirmed = window.confirm(
+          `确认删除这条提交记录？\n\n抬头：${item.invoice_title || "无"}\n邮箱：${item.email || "无"}`
+        );
+
+        if (!confirmed) {
+          return;
+        }
+
+        state.deletingIds.add(submissionId);
+        renderRows(state.items);
+        updateSummary();
+        setStatus(`正在删除 ${item.invoice_title || submissionId} ...`);
+
+        try {
+          const response = await fetch(`/api/admin/submissions/${encodeURIComponent(submissionId)}`, {
+            method: "DELETE",
+            headers: {
+              Accept: "application/json",
+            },
+          });
+
+          const payload = await response.json().catch(() => ({}));
+
+          if (!response.ok || !payload.success) {
+            throw new Error(payload?.error?.message || "删除失败");
+          }
+
+          if (state.items.length === 1 && state.offset > 0) {
+            state.offset = Math.max(0, state.offset - state.limit);
+          }
+
+          setStatus("删除成功，正在刷新列表...");
+          await loadRecords();
+        } catch (error) {
+          setStatus(error.message || "删除失败，请稍后重试。", true);
+        } finally {
+          state.deletingIds.delete(submissionId);
+          renderRows(state.items);
+          updateSummary();
+        }
+      }
+
       form.addEventListener("submit", (event) => {
         event.preventDefault();
         const formData = new FormData(form);
@@ -646,6 +729,16 @@
       nextButton.addEventListener("click", () => {
         state.offset += state.limit;
         loadRecords();
+      });
+
+      recordsBody.addEventListener("click", (event) => {
+        const button = event.target.closest('button[data-action="delete"]');
+
+        if (!button || button.disabled) {
+          return;
+        }
+
+        deleteSubmission(button.dataset.submissionId || "");
       });
 
       loadRecords();

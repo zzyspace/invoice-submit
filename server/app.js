@@ -5,6 +5,7 @@ import multer from "multer";
 
 import {
   createAdminAuthMiddleware,
+  deleteSubmissionForAdmin,
   getSubmissionAttachment,
   listSubmissionsForAdmin,
 } from "./admin.js";
@@ -94,6 +95,29 @@ export function createApp({
       `inline; filename*=UTF-8''${encodeURIComponent(attachment.attachment_name)}`
     );
     response.sendFile(attachment.attachment_path);
+  });
+
+  app.delete("/api/admin/submissions/:id", adminAuth, async (request, response, next) => {
+    try {
+      const deleted = await deleteSubmissionForAdmin(db, request.params.id);
+
+      if (!deleted) {
+        response.status(404).json({
+          success: false,
+          error: {
+            message: "提交记录不存在或已被删除。",
+          },
+        });
+        return;
+      }
+
+      response.status(200).json({
+        success: true,
+        id: deleted.id,
+      });
+    } catch (error) {
+      next(error);
+    }
   });
 
   app.post("/api/submissions", (request, response, next) => {

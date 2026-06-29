@@ -194,8 +194,10 @@ mkdir -p /var/lib/invoice-submit/uploads
 
 字段如下：
 
-- `id TEXT PRIMARY KEY`
-  - 提交记录唯一 ID
+- `submit_id INTEGER PRIMARY KEY AUTOINCREMENT`
+  - 数据库内部自增主键
+- `id TEXT NOT NULL UNIQUE`
+  - 提交记录业务唯一 ID
 - `invoice_type TEXT NOT NULL`
   - 开票主体类型，值为 `enterprise` 或 `personal`
 - `invoice_title TEXT NOT NULL`
@@ -332,7 +334,7 @@ tail -f /var/log/nginx/access.log /var/log/nginx/error.log
 
 ```bash
 sqlite3 /var/lib/invoice-submit/data/app.db \
-  "select id, invoice_type, invoice_title, store_key, email, attachment_path, created_at from submissions order by created_at desc limit 20;"
+  "select submit_id, id, invoice_type, invoice_title, store_key, email, attachment_path, created_at from submissions order by submit_id desc limit 20;"
 ```
 
 ### 查看已上传附件

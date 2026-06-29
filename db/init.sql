@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS submissions (
-  id TEXT PRIMARY KEY,
+  submit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id TEXT NOT NULL UNIQUE,
   invoice_type TEXT NOT NULL,
   invoice_title TEXT NOT NULL,
   tax_number TEXT,
