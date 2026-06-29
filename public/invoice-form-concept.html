@@ -2,7 +2,7 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>开票信息提交</title>
     <style>
       :root {
@@ -69,33 +69,9 @@
         gap: 14px;
       }
 
-      .status-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 6px 8px 0;
-        font-size: 14px;
-        color: rgba(23, 25, 23, 0.82);
-      }
-
-      .notch {
-        width: 126px;
-        height: 28px;
-        border-radius: 999px;
-        background: rgba(16, 21, 20, 0.92);
-        margin: 0 auto 4px;
-      }
-
       .hero {
-        padding: 8px 2px 12px;
+        padding: 0 2px 12px;
         border-bottom: 1px solid var(--line);
-      }
-
-      .hero-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 16px;
       }
 
       .hero h1 {
@@ -113,35 +89,8 @@
         color: var(--ink-soft);
       }
 
-      .trust {
-        min-width: 92px;
-        padding: 0;
-        text-align: right;
-      }
-
-      .trust .label {
-        font-size: 11px;
-        color: var(--ink-soft);
-      }
-
-      .trust strong {
-        display: block;
-        margin-top: 6px;
-        font-size: 14px;
-        font-weight: 600;
-      }
-
       .progress {
-        margin-top: 18px;
-      }
-
-      .progress-meta {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-        font-size: 12px;
-        color: var(--ink-soft);
+        margin-top: 16px;
       }
 
       .progress-track {
@@ -485,25 +434,13 @@
     <main class="stage">
       <div class="phone">
         <div class="screen">
-          <div class="notch"></div>
-          <div class="status-bar">
-            <span>9:41</span>
-            <span>5G 92%</span>
-          </div>
-
           <section class="hero">
-              <div class="hero-top">
-                <div>
-                  <h1>开票信息</h1>
-                  <p>请填写开票信息，我们将会在2个工作日内将电子发票发送到指定邮箱。若2个工作日内没有收到，请检查垃圾邮件或联系门店，我们会为您及时处理。</p>
-                </div>
-              </div>
+            <div>
+              <h1>开票信息</h1>
+              <p>请填写开票信息，我们将会在2个工作日内将电子发票发送到指定邮箱。若2个工作日内没有收到，请检查垃圾邮件或联系门店，我们会为您及时处理。</p>
+            </div>
 
             <div class="progress">
-              <div class="progress-meta">
-                <span>资料填写进度</span>
-                <span>02 / 03</span>
-              </div>
               <div class="progress-track">
                 <div class="progress-value"></div>
               </div>
