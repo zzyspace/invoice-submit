@@ -4,6 +4,7 @@ import path from "node:path";
 import { ALLOWED_ATTACHMENT_TYPES, MAX_ATTACHMENT_BYTES } from "./config.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const ALLOWED_STORE_KEYS = new Set(["fuzzy", "fuzzy_qz", "peanut"]);
 
 export class SubmissionValidationError extends Error {
   constructor(message, field = null) {
@@ -25,6 +26,7 @@ export function normalizeSubmissionPayload(body) {
     email: normalizeString(body.email),
     contact: normalizeString(body.contact),
     note: normalizeString(body.note),
+    storeKey: normalizeString(body.storeKey ?? body.store_key),
   };
 }
 
@@ -63,6 +65,14 @@ export function validateSubmission(payload) {
 
   if (payload.note.length > 500) {
     throw new SubmissionValidationError("备注长度不能超过 500 个字符。", "note");
+  }
+
+  if (!payload.storeKey) {
+    throw new SubmissionValidationError("请使用门店提供的专属开票链接。", "storeKey");
+  }
+
+  if (!ALLOWED_STORE_KEYS.has(payload.storeKey)) {
+    throw new SubmissionValidationError("门店标识无效，请使用正确的开票链接。", "storeKey");
   }
 
   return payload;
@@ -134,12 +144,13 @@ export async function createSubmissionRecord({
         email,
         contact,
         note,
+        store_key,
         attachment_path,
         attachment_name,
         attachment_content_type,
         attachment_size_bytes,
         created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       id,
       submission.invoiceType,
@@ -148,6 +159,7 @@ export async function createSubmissionRecord({
       submission.email,
       submission.contact || null,
       submission.note || null,
+      submission.storeKey,
       absoluteAttachmentPath,
       attachment.originalname,
       attachment.mimetype,

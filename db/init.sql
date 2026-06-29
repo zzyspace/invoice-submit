@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS submissions (
   email TEXT NOT NULL,
   contact TEXT,
   note TEXT,
+  store_key TEXT,
   attachment_path TEXT NOT NULL,
   attachment_name TEXT NOT NULL,
   attachment_content_type TEXT NOT NULL,

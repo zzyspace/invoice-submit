@@ -39,7 +39,9 @@ npm run dev
 
 默认监听：
 
-- `http://127.0.0.1:8787/`
+- `http://127.0.0.1:8787/fuzzy`
+- `http://127.0.0.1:8787/fuzzy_qz`
+- `http://127.0.0.1:8787/peanut`
 
 本地默认数据目录：
 
@@ -50,7 +52,9 @@ npm run dev
 
 服务器当前方案：
 
-- Web 入口：`http://<server-ip>:8080/`
+- Web 入口：`http://<server-ip>:8080/fuzzy`
+- Web 入口：`http://<server-ip>:8080/fuzzy_qz`
+- Web 入口：`http://<server-ip>:8080/peanut`
 - Nginx 对外监听：`8080`
 - Node 服务监听：`127.0.0.1:8787`
 
@@ -127,7 +131,9 @@ systemctl reload nginx
 ```bash
 curl http://127.0.0.1:8787/healthz
 curl http://127.0.0.1:8080/healthz
-curl -I http://127.0.0.1:8080/
+curl -I http://127.0.0.1:8080/fuzzy
+curl -I http://127.0.0.1:8080/fuzzy_qz
+curl -I http://127.0.0.1:8080/peanut
 ```
 
 ## 生产目录
@@ -176,6 +182,8 @@ mkdir -p /var/lib/invoice-submit/uploads
   - 联系方式，选填
 - `note TEXT`
   - 备注信息，选填
+- `store_key TEXT`
+  - 门店标识，由访问路径自动带入，当前支持 `fuzzy`、`fuzzy_qz`、`peanut`
 - `attachment_path TEXT NOT NULL`
   - 服务器本地附件完整路径
 - `attachment_name TEXT NOT NULL`
@@ -202,6 +210,7 @@ mkdir -p /var/lib/invoice-submit/uploads
 
 - 监听 `8080`
 - 静态目录：`/opt/invoice-submit/current/public`
+- 仅开放 `/fuzzy`、`/fuzzy_qz`、`/peanut` 三个开票页面路径
 - `/api/` 反代到 `127.0.0.1:8787`
 - `client_max_body_size 20M`
 
@@ -270,7 +279,7 @@ tail -f /var/log/nginx/access.log /var/log/nginx/error.log
 
 ```bash
 sqlite3 /var/lib/invoice-submit/data/app.db \
-  "select id, invoice_type, invoice_title, email, attachment_path, created_at from submissions order by created_at desc limit 20;"
+  "select id, invoice_type, invoice_title, store_key, email, attachment_path, created_at from submissions order by created_at desc limit 20;"
 ```
 
 ### 查看已上传附件
@@ -361,6 +370,7 @@ sqlite3 /var/lib/invoice-submit/data/app.db "select count(*) from submissions;"
 - 发票抬头必填
 - 邮箱必填
 - 附件必填
+- `store_key` 必填，且由访问路径自动带入
 - 税号始终选填，企业开票也不能强制要求税号
 - 仅支持单附件
 - 附件仅支持 `PNG / JPG / PDF`

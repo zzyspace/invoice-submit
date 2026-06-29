@@ -12,9 +12,16 @@ import {
 } from "./config.js";
 import { createDatabase } from "./database.js";
 import {
+  ALLOWED_STORE_KEYS,
   SubmissionValidationError,
   createSubmissionRecord,
 } from "./submissions.js";
+
+const storeRoutes = Array.from(ALLOWED_STORE_KEYS, (storeKey) => `/${storeKey}`);
+
+function sendNotFound(_request, response) {
+  response.status(404).type("text/plain").send("Not found");
+}
 
 function createUploadMiddleware() {
   return multer({
@@ -35,7 +42,8 @@ export function createApp({
   const app = express();
 
   app.disable("x-powered-by");
-  app.use(express.static(staticDir));
+  app.get("/index.html", sendNotFound);
+  app.use(express.static(staticDir, { index: false }));
 
   app.get("/healthz", (_request, response) => {
     response.status(200).json({ ok: true });
@@ -70,9 +78,11 @@ export function createApp({
     }
   });
 
-  app.get("*", (_request, response) => {
+  app.get(storeRoutes, (_request, response) => {
     response.sendFile(path.join(staticDir, "index.html"));
   });
+
+  app.use(sendNotFound);
 
   app.use((error, _request, response, _next) => {
     if (error instanceof SubmissionValidationError) {

@@ -9,6 +9,7 @@ import Database from "better-sqlite3";
 import multer from "multer";
 
 import { createApp } from "../server/app.js";
+import { createDatabase } from "../server/database.js";
 import { buildAttachmentRelativePath, createSubmissionRecord } from "../server/submissions.js";
 
 const schemaSql = `
@@ -20,6 +21,7 @@ CREATE TABLE IF NOT EXISTS submissions (
   email TEXT NOT NULL,
   contact TEXT,
   note TEXT,
+  store_key TEXT,
   attachment_path TEXT NOT NULL,
   attachment_name TEXT NOT NULL,
   attachment_content_type TEXT NOT NULL,
@@ -40,6 +42,7 @@ function createValidFormData() {
   formData.set("email", "finance@example.com");
   formData.set("contact", "13800000000");
   formData.set("note", "测试备注");
+  formData.set("storeKey", "fuzzy");
   formData.set(
     "attachment",
     new File([new Uint8Array([1, 2, 3])], "invoice.png", { type: "image/png" })
@@ -86,10 +89,35 @@ test("企业开票时税号留空也能提交成功", async () => {
     assert.equal(payload.success, true);
 
     const row = db
-      .prepare("SELECT tax_number, attachment_path FROM submissions WHERE id = ?")
+      .prepare("SELECT tax_number, store_key, attachment_path FROM submissions WHERE id = ?")
       .get(payload.id);
     assert.equal(row.tax_number, null);
+    assert.equal(row.store_key, "fuzzy");
     assert.equal(fs.existsSync(row.attachment_path), true);
+  });
+});
+
+test("只有门店路径返回开票页面", async () => {
+  const db = createTestDatabase();
+  const tempDir = createTempDirectory();
+  const app = createApp({
+    db,
+    uploadDirectory: path.join(tempDir, "uploads"),
+    staticDir: path.join(process.cwd(), "public"),
+  });
+
+  await withServer(app, async (baseUrl) => {
+    for (const route of ["/fuzzy", "/fuzzy_qz", "/peanut"]) {
+      const validResponse = await fetch(`${baseUrl}${route}`);
+      assert.equal(validResponse.status, 200);
+      assert.match(await validResponse.text(), /name="storeKey"/);
+    }
+
+    const rootResponse = await fetch(`${baseUrl}/`);
+    assert.equal(rootResponse.status, 404);
+
+    const indexResponse = await fetch(`${baseUrl}/index.html`);
+    assert.equal(indexResponse.status, 404);
   });
 });
 
@@ -114,6 +142,30 @@ test("缺少邮箱时提交失败", async () => {
     assert.equal(response.status, 400);
     const payload = await response.json();
     assert.equal(payload.error.field, "email");
+  });
+});
+
+test("门店标识无效时提交失败", async () => {
+  const db = createTestDatabase();
+  const tempDir = createTempDirectory();
+  const app = createApp({
+    db,
+    uploadDirectory: path.join(tempDir, "uploads"),
+    staticDir: path.join(process.cwd(), "public"),
+  });
+
+  const formData = createValidFormData();
+  formData.set("storeKey", "store-alpha");
+
+  await withServer(app, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/submissions`, {
+      method: "POST",
+      body: formData,
+    });
+
+    assert.equal(response.status, 400);
+    const payload = await response.json();
+    assert.equal(payload.error.field, "storeKey");
   });
 });
 
@@ -185,6 +237,7 @@ test("数据库写入失败时会删除刚写入的附件", async () => {
           email: "finance@example.com",
           contact: "",
           note: "",
+          storeKey: "fuzzy",
         },
         file: {
           originalname: "invoice.png",
@@ -207,6 +260,42 @@ test("数据库写入失败时会删除刚写入的附件", async () => {
   );
   const attachmentPath = path.join(uploadsRoot, relativePath.replace(/^uploads[\\/]/, ""));
   assert.equal(fs.existsSync(attachmentPath), false);
+});
+
+test("启动时会给旧 submissions 表补齐 store_key 列", () => {
+  const tempDir = createTempDirectory();
+  const dbFilePath = path.join(tempDir, "app.db");
+  const dbInitSqlPath = path.join(tempDir, "init.sql");
+
+  fs.writeFileSync(dbInitSqlPath, schemaSql);
+
+  const seedDb = new Database(dbFilePath);
+  seedDb.exec(`
+CREATE TABLE submissions (
+  id TEXT PRIMARY KEY,
+  invoice_type TEXT NOT NULL,
+  invoice_title TEXT NOT NULL,
+  tax_number TEXT,
+  email TEXT NOT NULL,
+  contact TEXT,
+  note TEXT,
+  attachment_path TEXT NOT NULL,
+  attachment_name TEXT NOT NULL,
+  attachment_content_type TEXT NOT NULL,
+  attachment_size_bytes INTEGER NOT NULL,
+  created_at TEXT NOT NULL
+);
+  `);
+  seedDb.close();
+
+  const db = createDatabase({ dbFilePath, dbInitSqlPath });
+
+  try {
+    const columns = db.prepare("PRAGMA table_info(submissions)").all();
+    assert.equal(columns.some((column) => column.name === "store_key"), true);
+  } finally {
+    db.close();
+  }
 });
 
 test("上传类型不是 PNG/JPG/PDF 时提交失败", async () => {

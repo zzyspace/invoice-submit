@@ -506,6 +506,7 @@
 
           <form id="invoice-form" class="form-stack" novalidate enctype="multipart/form-data">
             <input id="invoice-type" name="invoiceType" type="hidden" value="enterprise" />
+            <input id="store-key" name="storeKey" type="hidden" value="" />
 
             <section class="section-card">
               <div class="section-header">
@@ -691,6 +692,7 @@
         if (!form) return;
 
         const invoiceTypeInput = document.getElementById("invoice-type");
+        const storeKeyInput = document.getElementById("store-key");
         const typeButtons = Array.from(document.querySelectorAll("[data-invoice-type]"));
         const invoiceTitleInput = document.getElementById("invoice-title");
         const emailInput = document.getElementById("email");
@@ -705,6 +707,11 @@
           "image/png",
           "image/jpeg",
           "application/pdf",
+        ]);
+        const pathToStoreKey = new Map([
+          ["/fuzzy", "fuzzy"],
+          ["/fuzzy_qz", "fuzzy_qz"],
+          ["/peanut", "peanut"],
         ]);
         const maxAttachmentBytes = 20 * 1024 * 1024;
 
@@ -727,6 +734,17 @@
           }
 
           return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+        }
+
+        function normalizeRoutePath(pathname) {
+          const normalized = pathname.replace(/\/+$/g, "");
+          return normalized || "/";
+        }
+
+        function syncStoreKey() {
+          const storeKey = pathToStoreKey.get(normalizeRoutePath(window.location.pathname)) || "";
+          storeKeyInput.value = storeKey;
+          return storeKey;
         }
 
         function setInvoiceType(value) {
@@ -799,6 +817,11 @@
           event.preventDefault();
           setFeedback("", "");
 
+          if (!syncStoreKey()) {
+            setFeedback("当前链接无效，请使用门店提供的专属开票链接。", "error");
+            return;
+          }
+
           if (!invoiceTitleInput.value.trim()) {
             setFeedback("请填写发票抬头。", "error");
             invoiceTitleInput.focus();
@@ -848,8 +871,9 @@
 
             form.reset();
             setInvoiceType("enterprise");
+            syncStoreKey();
             syncAttachmentUi();
-            setFeedback("提交成功，我们已收到开票信息。可关闭此页面。", "success");
+            setFeedback("提交成功，我们已收到开票信息。请关闭此页面。", "success");
           } catch (error) {
             const message =
               error instanceof Error && error.message
@@ -863,6 +887,10 @@
         });
 
         setInvoiceType(invoiceTypeInput.value || "enterprise");
+        if (!syncStoreKey()) {
+          submitButton.disabled = true;
+          setFeedback("当前链接无效，请使用门店提供的专属开票链接。", "error");
+        }
         syncAttachmentUi();
       })();
     </script>
