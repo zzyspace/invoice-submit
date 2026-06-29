@@ -4,7 +4,14 @@ import express from "express";
 import multer from "multer";
 
 import {
+  createAdminAuthMiddleware,
+  getSubmissionAttachment,
+  listSubmissionsForAdmin,
+} from "./admin.js";
+import {
   MAX_ATTACHMENT_BYTES,
+  adminPassword,
+  adminUsername,
   dbFilePath,
   dbInitSqlPath,
   publicDir,
@@ -38,15 +45,55 @@ export function createApp({
   upload = createUploadMiddleware(),
   staticDir = publicDir,
   uploadDirectory = uploadsRoot,
+  adminCredentials = { username: adminUsername, password: adminPassword },
 } = {}) {
   const app = express();
+  const adminAuth = createAdminAuthMiddleware(adminCredentials);
 
   app.disable("x-powered-by");
   app.get("/index.html", sendNotFound);
+  app.get("/admin.html", sendNotFound);
   app.use(express.static(staticDir, { index: false }));
 
   app.get("/healthz", (_request, response) => {
     response.status(200).json({ ok: true });
+  });
+
+  app.get(["/admin", "/admin/"], adminAuth, (_request, response) => {
+    response.sendFile(path.join(staticDir, "admin.html"));
+  });
+
+  app.get("/api/admin/submissions", adminAuth, (request, response, next) => {
+    try {
+      const result = listSubmissionsForAdmin(db, request.query);
+      response.status(200).json({
+        success: true,
+        ...result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/admin/submissions/:id/attachment", adminAuth, (request, response) => {
+    const attachment = getSubmissionAttachment(db, request.params.id);
+
+    if (!attachment) {
+      response.status(404).json({
+        success: false,
+        error: {
+          message: "附件不存在或已被删除。",
+        },
+      });
+      return;
+    }
+
+    response.type(attachment.attachment_content_type);
+    response.set(
+      "Content-Disposition",
+      `inline; filename*=UTF-8''${encodeURIComponent(attachment.attachment_name)}`
+    );
+    response.sendFile(attachment.attachment_path);
   });
 
   app.post("/api/submissions", (request, response, next) => {
@@ -102,6 +149,17 @@ export function createApp({
         error: {
           field: "attachment",
           message: "附件大小不能超过 20MB。",
+        },
+      });
+      return;
+    }
+
+    if (error?.message === "invalid-store-key") {
+      response.status(400).json({
+        success: false,
+        error: {
+          field: "storeKey",
+          message: "门店筛选参数无效。",
         },
       });
       return;

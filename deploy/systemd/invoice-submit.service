@@ -10,6 +10,7 @@ Environment=NODE_ENV=production
 Environment=PORT=8787
 Environment=INVOICE_SUBMIT_HOST=127.0.0.1
 Environment=INVOICE_SUBMIT_DATA_ROOT=/var/lib/invoice-submit
+EnvironmentFile=-/etc/invoice-submit.env
 ExecStart=/usr/bin/node /opt/invoice-submit/current/server/index.js
 Restart=always
 RestartSec=3

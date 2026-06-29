@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>提交记录后台</title>
+    <style>
+      :root {
+        --bg: #f4f0e8;
+        --bg-accent: #e7dfd0;
+        --surface: rgba(255, 255, 255, 0.88);
+        --surface-strong: #ffffff;
+        --line: rgba(62, 48, 29, 0.12);
+        --line-strong: rgba(62, 48, 29, 0.18);
+        --ink: #20180f;
+        --ink-soft: #6d6254;
+        --brand: #315c4b;
+        --brand-soft: #dfe9e4;
+        --accent: #c46f3f;
+        --danger: #9b3c23;
+        --shadow: 0 24px 60px rgba(46, 35, 21, 0.12);
+        --radius-xl: 28px;
+        --radius-lg: 18px;
+        --radius-md: 12px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "SF Pro Text", "PingFang SC", "Noto Sans SC", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(196, 111, 63, 0.14), transparent 28%),
+          radial-gradient(circle at top right, rgba(49, 92, 75, 0.16), transparent 24%),
+          linear-gradient(180deg, var(--bg) 0%, var(--bg-accent) 100%);
+      }
+
+      .page {
+        width: min(1240px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 32px 0 48px;
+      }
+
+      .hero {
+        display: grid;
+        gap: 14px;
+        margin-bottom: 20px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        width: fit-content;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(62, 48, 29, 0.08);
+        color: var(--ink-soft);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(30px, 4vw, 48px);
+        line-height: 1;
+        letter-spacing: -0.05em;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 720px;
+        color: var(--ink-soft);
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(20px);
+      }
+
+      .controls {
+        padding: 22px;
+        margin-bottom: 18px;
+      }
+
+      .controls-grid {
+        display: grid;
+        grid-template-columns: minmax(220px, 2fr) minmax(140px, 1fr) minmax(120px, 0.7fr) auto auto;
+        gap: 12px;
+        align-items: end;
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .field label {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink-soft);
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+      }
+
+      .field input,
+      .field select,
+      button {
+        min-height: 46px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--line);
+        padding: 0 14px;
+        font: inherit;
+      }
+
+      .field input,
+      .field select {
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--ink);
+      }
+
+      .field input:focus,
+      .field select:focus,
+      button:focus {
+        outline: 2px solid rgba(49, 92, 75, 0.25);
+        outline-offset: 2px;
+      }
+
+      button {
+        background: var(--surface-strong);
+        color: var(--ink);
+        cursor: pointer;
+        font-weight: 700;
+      }
+
+      .button-primary {
+        background: var(--brand);
+        border-color: var(--brand);
+        color: #ffffff;
+      }
+
+      .meta-row {
+        margin-top: 16px;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 34px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: var(--brand-soft);
+        color: var(--brand);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .status {
+        color: var(--ink-soft);
+        font-size: 14px;
+      }
+
+      .status.error {
+        color: var(--danger);
+      }
+
+      .table-panel {
+        overflow: hidden;
+      }
+
+      .table-scroll {
+        overflow: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1120px;
+      }
+
+      thead {
+        background: rgba(255, 255, 255, 0.7);
+      }
+
+      th,
+      td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+        text-align: left;
+      }
+
+      th {
+        color: var(--ink-soft);
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      td {
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      tbody tr:hover {
+        background: rgba(255, 255, 255, 0.56);
+      }
+
+      .mono {
+        font-family: "SF Mono", "JetBrains Mono", "Consolas", monospace;
+        font-size: 12px;
+      }
+
+      .muted {
+        color: var(--ink-soft);
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 0 10px;
+        border-radius: 999px;
+        background: rgba(49, 92, 75, 0.1);
+        color: var(--brand);
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .attachment-link {
+        color: var(--accent);
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .attachment-link:hover {
+        text-decoration: underline;
+      }
+
+      .empty {
+        padding: 28px 18px;
+        color: var(--ink-soft);
+        text-align: center;
+      }
+
+      .pagination {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 18px 22px 22px;
+      }
+
+      .pagination button[disabled] {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      @media (max-width: 980px) {
+        .page {
+          width: min(100vw - 20px, 1240px);
+          padding-top: 20px;
+        }
+
+        .controls-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .controls {
+          padding: 18px;
+        }
+
+        .controls-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .pagination {
+          justify-content: stretch;
+        }
+
+        .pagination button {
+          flex: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <span class="eyebrow">Invoice Submit Admin</span>
+        <h1>提交记录后台</h1>
+        <p>查看最新开票提交记录，支持按门店和关键词筛选，并可直接打开用户上传的付款凭证。</p>
+      </section>
+
+      <section class="panel controls">
+        <form id="filter-form">
+          <div class="controls-grid">
+            <div class="field">
+              <label for="search">关键词</label>
+              <input
+                id="search"
+                name="search"
+                type="search"
+                placeholder="搜索抬头、邮箱、联系方式、税号、备注"
+              />
+            </div>
+
+            <div class="field">
+              <label for="storeKey">门店</label>
+              <select id="storeKey" name="storeKey">
+                <option value="">全部门店</option>
+                <option value="fuzzy">fuzzy</option>
+                <option value="fuzzy_qz">fuzzy_qz</option>
+                <option value="peanut">peanut</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="limit">每页数量</label>
+              <select id="limit" name="limit">
+                <option value="20">20</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <button class="button-primary" type="submit">查询</button>
+            <button id="refresh-button" type="button">刷新</button>
+          </div>
+        </form>
+
+        <div class="meta-row">
+          <div class="summary">
+            <span class="pill" id="summary-count">0 条记录</span>
+            <span class="pill" id="summary-range">0 - 0</span>
+          </div>
+          <div class="status" id="status-text">正在加载...</div>
+        </div>
+      </section>
+
+      <section class="panel table-panel">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>提交时间</th>
+                <th>门店</th>
+                <th>抬头 / 类型</th>
+                <th>税号</th>
+                <th>邮箱</th>
+                <th>联系方式</th>
+                <th>备注</th>
+                <th>附件</th>
+                <th>ID</th>
+              </tr>
+            </thead>
+            <tbody id="records-body"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="empty-state" hidden>暂无符合条件的提交记录。</div>
+        <div class="pagination">
+          <button id="prev-button" type="button">上一页</button>
+          <button id="next-button" type="button">下一页</button>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const form = document.getElementById("filter-form");
+      const refreshButton = document.getElementById("refresh-button");
+      const prevButton = document.getElementById("prev-button");
+      const nextButton = document.getElementById("next-button");
+      const recordsBody = document.getElementById("records-body");
+      const emptyState = document.getElementById("empty-state");
+      const statusText = document.getElementById("status-text");
+      const summaryCount = document.getElementById("summary-count");
+      const summaryRange = document.getElementById("summary-range");
+
+      const state = {
+        search: "",
+        storeKey: "",
+        limit: 50,
+        offset: 0,
+        total: 0,
+        items: [],
+        loading: false,
+      };
+
+      const storeLabels = {
+        fuzzy: "fuzzy",
+        fuzzy_qz: "fuzzy_qz",
+        peanut: "peanut",
+      };
+
+      const typeLabels = {
+        enterprise: "企业",
+        personal: "个人",
+      };
+
+      function formatDate(value) {
+        if (!value) {
+          return "无";
+        }
+
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+          return value;
+        }
+
+        return date.toLocaleString("zh-CN", {
+          hour12: false,
+        });
+      }
+
+      function formatBytes(value) {
+        if (!Number.isFinite(value)) {
+          return "";
+        }
+
+        if (value < 1024) {
+          return `${value} B`;
+        }
+
+        if (value < 1024 * 1024) {
+          return `${(value / 1024).toFixed(1)} KB`;
+        }
+
+        return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+      }
+
+      function setStatus(message, isError = false) {
+        statusText.textContent = message;
+        statusText.classList.toggle("error", isError);
+      }
+
+      function createCell(content, className = "") {
+        const cell = document.createElement("td");
+        if (className) {
+          cell.className = className;
+        }
+        if (typeof content === "string") {
+          cell.textContent = content;
+        } else if (content) {
+          cell.appendChild(content);
+        }
+        return cell;
+      }
+
+      function createTag(text) {
+        const span = document.createElement("span");
+        span.className = "tag";
+        span.textContent = text;
+        return span;
+      }
+
+      function renderRows(items) {
+        recordsBody.textContent = "";
+
+        for (const item of items) {
+          const row = document.createElement("tr");
+
+          row.appendChild(createCell(formatDate(item.created_at)));
+          row.appendChild(createCell("", ""));
+          row.lastChild.appendChild(createTag(storeLabels[item.store_key] || item.store_key || "未知"));
+
+          const titleCell = document.createElement("td");
+          const titleStrong = document.createElement("div");
+          titleStrong.textContent = item.invoice_title || "无";
+          const typeText = document.createElement("div");
+          typeText.className = "muted";
+          typeText.textContent = typeLabels[item.invoice_type] || item.invoice_type || "未知";
+          titleCell.append(titleStrong, typeText);
+          row.appendChild(titleCell);
+
+          row.appendChild(createCell(item.tax_number || "无"));
+          row.appendChild(createCell(item.email || "无"));
+          row.appendChild(createCell(item.contact || "无"));
+          row.appendChild(createCell(item.note || "无"));
+
+          const attachmentCell = document.createElement("td");
+          const attachmentLink = document.createElement("a");
+          attachmentLink.className = "attachment-link";
+          attachmentLink.href = `/api/admin/submissions/${encodeURIComponent(item.id)}/attachment`;
+          attachmentLink.target = "_blank";
+          attachmentLink.rel = "noopener noreferrer";
+          attachmentLink.textContent = item.attachment_name || "查看附件";
+          const attachmentMeta = document.createElement("div");
+          attachmentMeta.className = "muted";
+          attachmentMeta.textContent = [
+            item.attachment_content_type || "",
+            formatBytes(item.attachment_size_bytes),
+          ]
+            .filter(Boolean)
+            .join(" · ");
+          attachmentCell.append(attachmentLink, attachmentMeta);
+          row.appendChild(attachmentCell);
+
+          row.appendChild(createCell(item.id || "", "mono"));
+          recordsBody.appendChild(row);
+        }
+      }
+
+      function updateSummary() {
+        const start = state.total === 0 ? 0 : state.offset + 1;
+        const end = state.offset + state.items.length;
+
+        summaryCount.textContent = `${state.total} 条记录`;
+        summaryRange.textContent = `${start} - ${end}`;
+        prevButton.disabled = state.loading || state.offset === 0;
+        nextButton.disabled = state.loading || end >= state.total;
+        emptyState.hidden = state.items.length > 0;
+      }
+
+      async function loadRecords() {
+        state.loading = true;
+        prevButton.disabled = true;
+        nextButton.disabled = true;
+        setStatus("正在加载...");
+
+        const query = new URLSearchParams({
+          search: state.search,
+          storeKey: state.storeKey,
+          limit: String(state.limit),
+          offset: String(state.offset),
+        });
+
+        try {
+          const response = await fetch(`/api/admin/submissions?${query.toString()}`, {
+            headers: {
+              Accept: "application/json",
+            },
+          });
+
+          const payload = await response.json().catch(() => ({}));
+
+          if (!response.ok || !payload.success) {
+            throw new Error(payload?.error?.message || "加载失败");
+          }
+
+          state.total = payload.total || 0;
+          state.items = Array.isArray(payload.items) ? payload.items : [];
+          renderRows(state.items);
+          updateSummary();
+
+          if (state.total === 0) {
+            setStatus("当前没有符合条件的记录。");
+          } else {
+            setStatus(`已加载 ${state.items.length} 条记录。`);
+          }
+        } catch (error) {
+          state.items = [];
+          state.total = 0;
+          renderRows([]);
+          updateSummary();
+          setStatus(error.message || "加载失败，请稍后重试。", true);
+        } finally {
+          state.loading = false;
+          updateSummary();
+        }
+      }
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        state.search = String(formData.get("search") || "").trim();
+        state.storeKey = String(formData.get("storeKey") || "");
+        state.limit = Number.parseInt(String(formData.get("limit") || "50"), 10) || 50;
+        state.offset = 0;
+        loadRecords();
+      });
+
+      refreshButton.addEventListener("click", () => {
+        loadRecords();
+      });
+
+      prevButton.addEventListener("click", () => {
+        state.offset = Math.max(0, state.offset - state.limit);
+        loadRecords();
+      });
+
+      nextButton.addEventListener("click", () => {
+        state.offset += state.limit;
+        loadRecords();
+      });
+
+      loadRecords();
+    </script>
+  </body>
+</html>

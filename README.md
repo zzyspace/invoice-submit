@@ -43,6 +43,17 @@ npm run dev
 - `http://127.0.0.1:8787/fuzzy_qz`
 - `http://127.0.0.1:8787/peanut`
 
+如需本地查看后台，再额外设置管理员账号密码：
+
+```bash
+export INVOICE_ADMIN_USERNAME=admin
+export INVOICE_ADMIN_PASSWORD='change-this-password'
+```
+
+然后访问：
+
+- `http://127.0.0.1:8787/admin`
+
 本地默认数据目录：
 
 - `./.data/data/app.db`
@@ -149,6 +160,21 @@ curl -I http://127.0.0.1:8080/peanut
 INVOICE_SUBMIT_DATA_ROOT=/var/lib/invoice-submit
 ```
 
+管理员后台账号密码建议放到单独环境文件：
+
+```bash
+cat >/etc/invoice-submit.env <<'EOF'
+INVOICE_ADMIN_USERNAME=admin
+INVOICE_ADMIN_PASSWORD=replace-with-a-strong-password
+EOF
+chmod 600 /etc/invoice-submit.env
+systemctl restart invoice-submit.service
+```
+
+后台入口：
+
+- `http://<server-ip>:8080/admin`
+
 ## 初始化数据库
 
 数据库会在服务启动时自动执行 [db/init.sql](/Users/ryan/DataDisk/Work/AI/invoice-submit/db/init.sql)。
@@ -200,6 +226,21 @@ mkdir -p /var/lib/invoice-submit/uploads
 - `idx_submissions_created_at`
 - `idx_submissions_email`
 
+## 管理员后台
+
+后台是一个最小只读页面，默认需要 HTTP Basic Auth：
+
+- 页面：`/admin`
+- 列表接口：`/api/admin/submissions`
+- 附件查看：`/api/admin/submissions/:id/attachment`
+
+支持能力：
+
+- 按门店筛选
+- 按抬头、邮箱、联系方式、税号、备注关键词搜索
+- 分页查看最近提交记录
+- 直接打开用户上传的凭证附件
+
 ## Nginx
 
 参考配置：
@@ -211,6 +252,7 @@ mkdir -p /var/lib/invoice-submit/uploads
 - 监听 `8080`
 - 静态目录：`/opt/invoice-submit/current/public`
 - 仅开放 `/fuzzy`、`/fuzzy_qz`、`/peanut` 三个开票页面路径
+- `/admin` 反代到 `127.0.0.1:8787/admin`
 - `/api/` 反代到 `127.0.0.1:8787`
 - `client_max_body_size 20M`
 
@@ -226,6 +268,17 @@ mkdir -p /var/lib/invoice-submit/uploads
 cp deploy/systemd/invoice-submit.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now invoice-submit.service
+```
+
+如需后台登录，再创建可选环境文件：
+
+```bash
+cat >/etc/invoice-submit.env <<'EOF'
+INVOICE_ADMIN_USERNAME=admin
+INVOICE_ADMIN_PASSWORD=replace-with-a-strong-password
+EOF
+chmod 600 /etc/invoice-submit.env
+systemctl restart invoice-submit.service
 ```
 
 查看运行状态：

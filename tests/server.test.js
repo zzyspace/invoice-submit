@@ -56,6 +56,12 @@ function createTestDatabase() {
   return db;
 }
 
+function createAdminAuthHeaders(username = "admin", password = "secret-pass") {
+  return {
+    Authorization: `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`,
+  };
+}
+
 async function withServer(app, fn) {
   const server = http.createServer(app);
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
@@ -323,5 +329,158 @@ test("上传类型不是 PNG/JPG/PDF 时提交失败", async () => {
     assert.equal(response.status, 400);
     const payload = await response.json();
     assert.equal(payload.error.field, "attachment");
+  });
+});
+
+test("管理员接口未配置账号密码时返回 503", async () => {
+  const db = createTestDatabase();
+  const tempDir = createTempDirectory();
+  const app = createApp({
+    db,
+    uploadDirectory: path.join(tempDir, "uploads"),
+    staticDir: path.join(process.cwd(), "public"),
+    adminCredentials: { username: "", password: "" },
+  });
+
+  await withServer(app, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/admin/submissions`);
+    assert.equal(response.status, 503);
+    const payload = await response.json();
+    assert.match(payload.error.message, /尚未配置账号密码/);
+  });
+});
+
+test("管理员接口需要 Basic Auth", async () => {
+  const db = createTestDatabase();
+  const tempDir = createTempDirectory();
+  const app = createApp({
+    db,
+    uploadDirectory: path.join(tempDir, "uploads"),
+    staticDir: path.join(process.cwd(), "public"),
+    adminCredentials: { username: "admin", password: "secret-pass" },
+  });
+
+  await withServer(app, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/admin/submissions`);
+    assert.equal(response.status, 401);
+    assert.equal(response.headers.get("www-authenticate"), 'Basic realm="Invoice Submit Admin", charset="UTF-8"');
+  });
+});
+
+test("管理员可以分页查看提交记录", async () => {
+  const db = createTestDatabase();
+  const tempDir = createTempDirectory();
+  const uploadsRoot = path.join(tempDir, "uploads");
+  const app = createApp({
+    db,
+    uploadDirectory: uploadsRoot,
+    staticDir: path.join(process.cwd(), "public"),
+    adminCredentials: { username: "admin", password: "secret-pass" },
+  });
+
+  await createSubmissionRecord({
+    body: {
+      invoiceType: "enterprise",
+      invoiceTitle: "上海示例科技有限公司",
+      taxNumber: "91310000MA000001",
+      email: "finance@example.com",
+      contact: "13800000000",
+      note: "首单",
+      storeKey: "fuzzy",
+    },
+    file: {
+      originalname: "invoice-a.png",
+      mimetype: "image/png",
+      size: 3,
+      buffer: Buffer.from([1, 2, 3]),
+    },
+    db,
+    uploadsRoot,
+    now: new Date("2026-06-30T01:00:00Z"),
+    generateId: () => "submission-a",
+  });
+
+  await createSubmissionRecord({
+    body: {
+      invoiceType: "personal",
+      invoiceTitle: "王小明",
+      taxNumber: "",
+      email: "wang@example.com",
+      contact: "13900000000",
+      note: "第二单",
+      storeKey: "peanut",
+    },
+    file: {
+      originalname: "invoice-b.pdf",
+      mimetype: "application/pdf",
+      size: 4,
+      buffer: Buffer.from([4, 5, 6, 7]),
+    },
+    db,
+    uploadsRoot,
+    now: new Date("2026-06-30T02:00:00Z"),
+    generateId: () => "submission-b",
+  });
+
+  await withServer(app, async (baseUrl) => {
+    const response = await fetch(
+      `${baseUrl}/api/admin/submissions?storeKey=peanut&search=%E7%8E%8B&limit=20&offset=0`,
+      {
+        headers: createAdminAuthHeaders(),
+      }
+    );
+
+    assert.equal(response.status, 200);
+    const payload = await response.json();
+    assert.equal(payload.success, true);
+    assert.equal(payload.total, 1);
+    assert.equal(payload.items.length, 1);
+    assert.equal(payload.items[0].id, "submission-b");
+    assert.equal(payload.items[0].attachment_name, "invoice-b.pdf");
+  });
+});
+
+test("管理员可以查看提交附件", async () => {
+  const db = createTestDatabase();
+  const tempDir = createTempDirectory();
+  const uploadsRoot = path.join(tempDir, "uploads");
+  const app = createApp({
+    db,
+    uploadDirectory: uploadsRoot,
+    staticDir: path.join(process.cwd(), "public"),
+    adminCredentials: { username: "admin", password: "secret-pass" },
+  });
+
+  await createSubmissionRecord({
+    body: {
+      invoiceType: "enterprise",
+      invoiceTitle: "上海示例科技有限公司",
+      taxNumber: "",
+      email: "finance@example.com",
+      contact: "",
+      note: "",
+      storeKey: "fuzzy",
+    },
+    file: {
+      originalname: "invoice-preview.png",
+      mimetype: "image/png",
+      size: 3,
+      buffer: Buffer.from([8, 9, 10]),
+    },
+    db,
+    uploadsRoot,
+    now: new Date("2026-06-30T03:00:00Z"),
+    generateId: () => "submission-preview",
+  });
+
+  await withServer(app, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/admin/submissions/submission-preview/attachment`, {
+      headers: createAdminAuthHeaders(),
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("content-type"), "image/png");
+    assert.match(response.headers.get("content-disposition"), /invoice-preview\.png/);
+    assert.deepEqual(new Uint8Array(await response.arrayBuffer()), new Uint8Array([8, 9, 10]));
   });
 });
