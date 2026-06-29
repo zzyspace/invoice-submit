@@ -57,6 +57,17 @@ wait_for_http_ok() {
   return 1
 }
 
+run_git_pull() {
+  local remote_url
+
+  remote_url="$(git -C "${APP_DIR}" remote get-url origin)"
+  echo "[deploy] origin remote: ${remote_url}"
+
+  GIT_TERMINAL_PROMPT=0 \
+  GIT_SSH_COMMAND="ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10" \
+    git -C "${APP_DIR}" pull --ff-only --progress origin main
+}
+
 run_release() {
   set -euo pipefail
 
@@ -88,7 +99,7 @@ run_release() {
   install -d -m 755 "${NGINX_AVAILABLE_DIR}" "${NGINX_ENABLED_DIR}"
 
   echo "[deploy] Pulling latest code from origin/main"
-  git -C "${APP_DIR}" pull --ff-only origin main
+  run_git_pull
 
   echo "[deploy] Installing production dependencies"
   npm --prefix "${APP_DIR}" install --omit=dev
@@ -158,5 +169,5 @@ if [[ "${SERVER}" == "local" || "${SERVER}" == "localhost" ]]; then
 elif [[ -d "${APP_DIR}/.git" && "${SERVER}" == "${DEFAULT_SERVER}" ]]; then
   run_release
 else
-  ssh "${SSH_OPTS[@]}" "${SERVER}" "$(declare -f wait_for_http_ok); $(declare -f run_release); APP_DIR='${APP_DIR}'; DATA_ROOT='${DATA_ROOT}'; SERVICE_NAME='${SERVICE_NAME}'; SYSTEMD_UNIT_DIR='${SYSTEMD_UNIT_DIR}'; NGINX_SITE_NAME='${NGINX_SITE_NAME}'; NGINX_AVAILABLE_DIR='${NGINX_AVAILABLE_DIR}'; NGINX_ENABLED_DIR='${NGINX_ENABLED_DIR}'; HEALTHZ_NODE_URL='${HEALTHZ_NODE_URL}'; HEALTHZ_WEB_URL='${HEALTHZ_WEB_URL}'; run_release"
+  ssh "${SSH_OPTS[@]}" "${SERVER}" "$(declare -f wait_for_http_ok); $(declare -f run_git_pull); $(declare -f run_release); APP_DIR='${APP_DIR}'; DATA_ROOT='${DATA_ROOT}'; SERVICE_NAME='${SERVICE_NAME}'; SYSTEMD_UNIT_DIR='${SYSTEMD_UNIT_DIR}'; NGINX_SITE_NAME='${NGINX_SITE_NAME}'; NGINX_AVAILABLE_DIR='${NGINX_AVAILABLE_DIR}'; NGINX_ENABLED_DIR='${NGINX_ENABLED_DIR}'; HEALTHZ_NODE_URL='${HEALTHZ_NODE_URL}'; HEALTHZ_WEB_URL='${HEALTHZ_WEB_URL}'; run_release"
 fi

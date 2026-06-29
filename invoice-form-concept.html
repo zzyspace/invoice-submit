@@ -849,7 +849,7 @@
             form.reset();
             setInvoiceType("enterprise");
             syncAttachmentUi();
-            setFeedback("提交成功，我们已收到开票信息。", "success");
+            setFeedback("提交成功，我们已收到开票信息。请关闭此页面", "success");
           } catch (error) {
             const message =
               error instanceof Error && error.message
