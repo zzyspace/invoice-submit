@@ -419,8 +419,8 @@
                 <th>税号</th>
                 <th>邮箱</th>
                 <th>附件</th>
-                <th>联系方式</th>
                 <th>备注</th>
+                <th>联系方式</th>
                 <th>操作</th>
               </tr>
             </thead>
@@ -585,8 +585,8 @@
           attachmentCell.append(attachmentLink, attachmentMeta);
           row.appendChild(attachmentCell);
 
-          row.appendChild(createCell(item.contact || "无"));
           row.appendChild(createCell(item.note || "无"));
+          row.appendChild(createCell(item.contact || "无"));
 
           const actionsCell = document.createElement("td");
           actionsCell.className = "actions-cell";
