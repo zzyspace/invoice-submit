@@ -40,6 +40,10 @@
           linear-gradient(180deg, var(--bg) 0%, var(--bg-accent) 100%);
       }
 
+      body.modal-open {
+        overflow: hidden;
+      }
+
       .page {
         width: min(1240px, calc(100vw - 32px));
         margin: 0 auto;
@@ -311,6 +315,81 @@
         text-decoration: underline;
       }
 
+      .preview-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        background: rgba(28, 28, 30, 0.38);
+        backdrop-filter: blur(12px);
+      }
+
+      .preview-dialog {
+        width: min(1120px, calc(100vw - 40px));
+        max-height: calc(100vh - 40px);
+        display: grid;
+        grid-template-rows: auto 1fr;
+        overflow: hidden;
+      }
+
+      .preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 20px 22px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.76);
+      }
+
+      .preview-header h2 {
+        margin: 0;
+        font-size: 20px;
+        line-height: 1.2;
+        word-break: break-word;
+      }
+
+      .preview-meta {
+        margin-top: 6px;
+        color: var(--ink-soft);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .preview-body {
+        min-height: min(68vh, 760px);
+        padding: 20px;
+        display: grid;
+        place-items: center;
+        background: rgba(242, 242, 247, 0.82);
+      }
+
+      .preview-status {
+        max-width: 420px;
+        color: var(--ink-soft);
+        font-size: 15px;
+        line-height: 1.7;
+        text-align: center;
+      }
+
+      .preview-image {
+        max-width: 100%;
+        max-height: min(68vh, 760px);
+        border-radius: var(--radius-lg);
+        box-shadow: 0 16px 36px rgba(28, 28, 30, 0.12);
+        object-fit: contain;
+      }
+
+      .preview-frame {
+        width: 100%;
+        height: min(68vh, 760px);
+        border: 0;
+        border-radius: var(--radius-lg);
+        background: #ffffff;
+      }
+
       .actions-cell {
         white-space: nowrap;
       }
@@ -375,6 +454,31 @@
         .pagination button {
           flex: 1;
         }
+
+        .preview-modal {
+          padding: 12px;
+        }
+
+        .preview-dialog {
+          width: calc(100vw - 24px);
+          max-height: calc(100vh - 24px);
+        }
+
+        .preview-header {
+          padding: 18px;
+          flex-direction: column;
+        }
+
+        .preview-body {
+          min-height: 56vh;
+          padding: 14px;
+        }
+
+        .preview-image,
+        .preview-frame {
+          max-height: 56vh;
+          height: 56vh;
+        }
       }
     </style>
   </head>
@@ -383,7 +487,7 @@
       <section class="hero">
         <span class="eyebrow">Invoice Submit Admin</span>
         <h1>提交记录后台</h1>
-        <p>查看最新开票提交记录，支持按门店和关键词筛选，并可直接打开用户上传的付款凭证。</p>
+        <p>查看最新开票提交记录，支持按门店和关键词筛选，并可直接预览用户上传的付款凭证。</p>
       </section>
 
       <section class="panel controls">
@@ -472,6 +576,28 @@
       </section>
     </main>
 
+    <div class="preview-modal" id="attachment-preview-modal" hidden>
+      <section
+        class="panel preview-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="attachment-preview-title"
+      >
+        <header class="preview-header">
+          <div>
+            <h2 id="attachment-preview-title">附件预览</h2>
+            <div class="preview-meta" id="attachment-preview-meta"></div>
+          </div>
+          <button id="attachment-preview-close" type="button">关闭</button>
+        </header>
+        <div class="preview-body">
+          <div class="preview-status" id="attachment-preview-status">正在加载附件...</div>
+          <img class="preview-image" id="attachment-preview-image" alt="附件预览" hidden />
+          <iframe class="preview-frame" id="attachment-preview-frame" title="附件预览" hidden></iframe>
+        </div>
+      </section>
+    </div>
+
     <script>
       const form = document.getElementById("filter-form");
       const refreshButton = document.getElementById("refresh-button");
@@ -482,6 +608,13 @@
       const statusText = document.getElementById("status-text");
       const summaryCount = document.getElementById("summary-count");
       const summaryRange = document.getElementById("summary-range");
+      const attachmentPreviewModal = document.getElementById("attachment-preview-modal");
+      const attachmentPreviewTitle = document.getElementById("attachment-preview-title");
+      const attachmentPreviewMeta = document.getElementById("attachment-preview-meta");
+      const attachmentPreviewStatus = document.getElementById("attachment-preview-status");
+      const attachmentPreviewImage = document.getElementById("attachment-preview-image");
+      const attachmentPreviewFrame = document.getElementById("attachment-preview-frame");
+      const attachmentPreviewClose = document.getElementById("attachment-preview-close");
 
       const state = {
         search: "",
@@ -493,6 +626,9 @@
         loading: false,
         deletingIds: new Set(),
       };
+      let currentAttachmentPreviewUrl = "";
+      let currentAttachmentPreviewRequestId = 0;
+      let lastAttachmentPreviewTrigger = null;
 
       const storeLabels = {
         fuzzy: "fuzzy",
@@ -576,6 +712,111 @@
         return span;
       }
 
+      function revokeAttachmentPreviewUrl() {
+        if (!currentAttachmentPreviewUrl) {
+          return;
+        }
+
+        URL.revokeObjectURL(currentAttachmentPreviewUrl);
+        currentAttachmentPreviewUrl = "";
+      }
+
+      function resetAttachmentPreview() {
+        attachmentPreviewStatus.hidden = false;
+        attachmentPreviewStatus.textContent = "正在加载附件...";
+        attachmentPreviewImage.hidden = true;
+        attachmentPreviewFrame.hidden = true;
+        attachmentPreviewImage.removeAttribute("src");
+        attachmentPreviewFrame.removeAttribute("src");
+        revokeAttachmentPreviewUrl();
+      }
+
+      function closeAttachmentPreview() {
+        currentAttachmentPreviewRequestId += 1;
+        attachmentPreviewModal.hidden = true;
+        document.body.classList.remove("modal-open");
+        resetAttachmentPreview();
+        attachmentPreviewTitle.textContent = "附件预览";
+        attachmentPreviewMeta.textContent = "";
+
+        if (lastAttachmentPreviewTrigger) {
+          lastAttachmentPreviewTrigger.focus();
+          lastAttachmentPreviewTrigger = null;
+        }
+      }
+
+      async function openAttachmentPreview({ url, name, contentType, metaText, trigger }) {
+        if (!url) {
+          return;
+        }
+
+        currentAttachmentPreviewRequestId += 1;
+        const requestId = currentAttachmentPreviewRequestId;
+        lastAttachmentPreviewTrigger = trigger || null;
+        attachmentPreviewModal.hidden = false;
+        document.body.classList.add("modal-open");
+        resetAttachmentPreview();
+        attachmentPreviewTitle.textContent = name || "附件预览";
+        attachmentPreviewMeta.textContent = metaText || contentType || "";
+
+        try {
+          const response = await fetch(url, {
+            headers: {
+              Accept: contentType || "*/*",
+            },
+          });
+
+          const payload = response.headers.get("content-type")?.includes("application/json")
+            ? await response.clone().json().catch(() => null)
+            : null;
+
+          if (!response.ok) {
+            throw new Error(payload?.error?.message || "附件加载失败，请稍后重试。");
+          }
+
+          const blob = await response.blob();
+
+          if (requestId !== currentAttachmentPreviewRequestId) {
+            return;
+          }
+
+          const resolvedContentType = (
+            response.headers.get("content-type") ||
+            blob.type ||
+            contentType ||
+            ""
+          )
+            .split(";")[0]
+            .trim()
+            .toLowerCase();
+
+          currentAttachmentPreviewUrl = URL.createObjectURL(blob);
+
+          if (resolvedContentType === "application/pdf") {
+            attachmentPreviewFrame.src = currentAttachmentPreviewUrl;
+            attachmentPreviewFrame.hidden = false;
+            attachmentPreviewStatus.hidden = true;
+            return;
+          }
+
+          if (resolvedContentType.startsWith("image/")) {
+            attachmentPreviewImage.src = currentAttachmentPreviewUrl;
+            attachmentPreviewImage.alt = name ? `${name} 预览` : "附件预览";
+            attachmentPreviewImage.hidden = false;
+            attachmentPreviewStatus.hidden = true;
+            return;
+          }
+
+          attachmentPreviewStatus.textContent = "当前附件类型暂不支持页内预览。";
+        } catch (error) {
+          if (requestId !== currentAttachmentPreviewRequestId) {
+            return;
+          }
+
+          attachmentPreviewStatus.textContent = error.message || "附件加载失败，请稍后重试。";
+        }
+      }
+
       function renderRows(items) {
         recordsBody.textContent = "";
 
@@ -608,8 +849,9 @@
           const attachmentLink = document.createElement("a");
           attachmentLink.className = "attachment-link";
           attachmentLink.href = `/api/admin/submissions/${encodeURIComponent(item.id)}/attachment`;
-          attachmentLink.target = "_blank";
-          attachmentLink.rel = "noopener noreferrer";
+          attachmentLink.dataset.action = "preview-attachment";
+          attachmentLink.dataset.contentType = item.attachment_content_type || "";
+          attachmentLink.dataset.attachmentName = item.attachment_name || "查看附件";
           attachmentLink.textContent = item.attachment_name || "查看附件";
           const attachmentMeta = document.createElement("div");
           attachmentMeta.className = "muted";
@@ -619,6 +861,7 @@
           ]
             .filter(Boolean)
             .join(" · ");
+          attachmentLink.dataset.attachmentMeta = attachmentMeta.textContent;
           attachmentCell.append(attachmentLink, attachmentMeta);
           row.appendChild(attachmentCell);
 
@@ -775,6 +1018,20 @@
       });
 
       recordsBody.addEventListener("click", (event) => {
+        const attachmentLink = event.target.closest('a[data-action="preview-attachment"]');
+
+        if (attachmentLink) {
+          event.preventDefault();
+          openAttachmentPreview({
+            url: attachmentLink.href,
+            name: attachmentLink.dataset.attachmentName || attachmentLink.textContent || "附件预览",
+            contentType: attachmentLink.dataset.contentType || "",
+            metaText: attachmentLink.dataset.attachmentMeta || "",
+            trigger: attachmentLink,
+          });
+          return;
+        }
+
         const button = event.target.closest('button[data-action="delete"]');
 
         if (!button || button.disabled) {
@@ -782,6 +1039,22 @@
         }
 
         deleteSubmission(button.dataset.submissionId || "");
+      });
+
+      attachmentPreviewClose.addEventListener("click", () => {
+        closeAttachmentPreview();
+      });
+
+      attachmentPreviewModal.addEventListener("click", (event) => {
+        if (event.target === attachmentPreviewModal) {
+          closeAttachmentPreview();
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !attachmentPreviewModal.hidden) {
+          closeAttachmentPreview();
+        }
       });
 
       loadRecords();
