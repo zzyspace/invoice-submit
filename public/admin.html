@@ -197,7 +197,20 @@
       table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 1120px;
+        min-width: 1280px;
+        table-layout: fixed;
+      }
+
+      col.col-submit-id {
+        width: 88px;
+      }
+
+      col.col-attachment {
+        width: 208px;
+      }
+
+      col.col-note {
+        width: 240px;
       }
 
       thead {
@@ -222,6 +235,14 @@
       td {
         font-size: 14px;
         line-height: 1.6;
+      }
+
+      th:nth-child(7),
+      td:nth-child(7),
+      th:nth-child(8),
+      td:nth-child(8) {
+        overflow-wrap: anywhere;
+        word-break: break-word;
       }
 
       tbody tr:hover {
@@ -410,6 +431,18 @@
       <section class="panel table-panel">
         <div class="table-scroll">
           <table>
+            <colgroup>
+              <col class="col-submit-id" />
+              <col />
+              <col />
+              <col />
+              <col />
+              <col />
+              <col class="col-attachment" />
+              <col class="col-note" />
+              <col />
+              <col />
+            </colgroup>
             <thead>
               <tr>
                 <th>提交ID</th>
