@@ -7,19 +7,19 @@
     <title>提交记录后台</title>
     <style>
       :root {
-        --bg: #f4f0e8;
-        --bg-accent: #e7dfd0;
-        --surface: rgba(255, 255, 255, 0.88);
+        --bg: #f2f2f7;
+        --bg-accent: #e9edf7;
+        --surface: rgba(255, 255, 255, 0.84);
         --surface-strong: #ffffff;
-        --line: rgba(62, 48, 29, 0.12);
-        --line-strong: rgba(62, 48, 29, 0.18);
-        --ink: #20180f;
-        --ink-soft: #6d6254;
-        --brand: #315c4b;
-        --brand-soft: #dfe9e4;
-        --accent: #c46f3f;
-        --danger: #9b3c23;
-        --shadow: 0 24px 60px rgba(46, 35, 21, 0.12);
+        --line: rgba(60, 60, 67, 0.16);
+        --line-strong: rgba(60, 60, 67, 0.24);
+        --ink: #1c1c1e;
+        --ink-soft: #6e6e73;
+        --brand: #007aff;
+        --brand-soft: rgba(0, 122, 255, 0.12);
+        --accent: #007aff;
+        --danger: #ff3b30;
+        --shadow: 0 24px 60px rgba(28, 28, 30, 0.1);
         --radius-xl: 28px;
         --radius-lg: 18px;
         --radius-md: 12px;
@@ -35,8 +35,8 @@
         font-family: "SF Pro Text", "PingFang SC", "Noto Sans SC", sans-serif;
         color: var(--ink);
         background:
-          radial-gradient(circle at top left, rgba(196, 111, 63, 0.14), transparent 28%),
-          radial-gradient(circle at top right, rgba(49, 92, 75, 0.16), transparent 24%),
+          radial-gradient(circle at top left, rgba(0, 122, 255, 0.16), transparent 28%),
+          radial-gradient(circle at top right, rgba(90, 200, 250, 0.18), transparent 26%),
           linear-gradient(180deg, var(--bg) 0%, var(--bg-accent) 100%);
       }
 
@@ -58,7 +58,7 @@
         padding: 8px 12px;
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.72);
-        border: 1px solid rgba(62, 48, 29, 0.08);
+        border: 1px solid rgba(60, 60, 67, 0.12);
         color: var(--ink-soft);
         font-size: 12px;
         font-weight: 600;
@@ -132,7 +132,7 @@
       .field input:focus,
       .field select:focus,
       button:focus {
-        outline: 2px solid rgba(49, 92, 75, 0.25);
+        outline: 2px solid rgba(0, 122, 255, 0.28);
         outline-offset: 2px;
       }
 
@@ -202,15 +202,15 @@
       }
 
       col.col-submit-id {
-        width: 88px;
+        width: 80px;
       }
 
       col.col-attachment {
-        width: 208px;
+        width: 180px;
       }
 
       col.col-note {
-        width: 240px;
+        width: 180px;
       }
 
       thead {
@@ -237,6 +237,10 @@
         line-height: 1.6;
       }
 
+      th:nth-child(5),
+      td:nth-child(5),
+      th:nth-child(6),
+      td:nth-child(6),
       th:nth-child(7),
       td:nth-child(7),
       th:nth-child(8),
@@ -264,7 +268,7 @@
         min-height: 28px;
         padding: 0 10px;
         border-radius: 999px;
-        background: rgba(49, 92, 75, 0.1);
+        background: rgba(0, 122, 255, 0.1);
         color: var(--brand);
         font-size: 12px;
         font-weight: 700;
@@ -279,17 +283,17 @@
       }
 
       .tag-type-enterprise {
-        background: rgba(49, 92, 75, 0.14);
+        background: rgba(0, 122, 255, 0.14);
         color: var(--brand);
       }
 
       .tag-type-personal {
-        background: rgba(196, 111, 63, 0.16);
-        color: #9a532d;
+        background: rgba(255, 149, 0, 0.16);
+        color: #c96f00;
       }
 
       .tag-type-neutral {
-        background: rgba(109, 98, 84, 0.14);
+        background: rgba(120, 120, 128, 0.14);
         color: var(--ink-soft);
       }
 
@@ -315,15 +319,15 @@
         min-height: 36px;
         padding: 0 12px;
         border-radius: 999px;
-        border: 1px solid rgba(155, 60, 35, 0.16);
-        background: rgba(155, 60, 35, 0.08);
+        border: 1px solid rgba(255, 59, 48, 0.16);
+        background: rgba(255, 59, 48, 0.08);
         color: var(--danger);
         font-size: 13px;
         font-weight: 700;
       }
 
       .button-danger:hover:not([disabled]) {
-        background: rgba(155, 60, 35, 0.14);
+        background: rgba(255, 59, 48, 0.14);
       }
 
       .empty {
