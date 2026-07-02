@@ -444,7 +444,15 @@
         display: grid;
         place-items: center;
         padding: 8px;
-        background: linear-gradient(180deg, var(--upload-bg) 0%, var(--upload-filled-bg) 100%);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(244, 246, 242, 0.92) 100%),
+          repeating-linear-gradient(
+            45deg,
+            rgba(36, 54, 47, 0.04) 0,
+            rgba(36, 54, 47, 0.04) 10px,
+            rgba(255, 255, 255, 0.36) 10px,
+            rgba(255, 255, 255, 0.36) 20px
+          );
       }
 
       .upload-preview-media {
@@ -453,7 +461,46 @@
         display: block;
         object-fit: contain;
         border-radius: 12px;
+        border: 1px solid var(--line);
+        background: var(--surface-strong);
+        box-shadow: 0 12px 24px rgba(23, 25, 23, 0.08);
         pointer-events: none;
+      }
+
+      .upload-preview-image-fallback[hidden] {
+        display: none;
+      }
+
+      .upload-preview-image-fallback {
+        position: absolute;
+        inset: 8px;
+        display: grid;
+        place-items: center;
+        gap: 10px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.72);
+        color: var(--ink-soft);
+        text-align: center;
+        pointer-events: none;
+      }
+
+      .upload-preview-image-fallback__icon {
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        background: var(--surface-strong);
+        border: 1px solid var(--line);
+        color: var(--brand);
+        font-size: 16px;
+        font-weight: 800;
+      }
+
+      .upload-preview-image-fallback__text {
+        font-size: 13px;
+        line-height: 1.5;
       }
 
       .upload-preview-document {
@@ -773,6 +820,10 @@
                   </div>
                   <div class="upload-preview" id="attachment-preview" hidden aria-hidden="true">
                     <img id="attachment-image-preview" class="upload-preview-media" alt="" hidden />
+                    <div id="attachment-image-fallback" class="upload-preview-image-fallback" hidden>
+                      <div class="upload-preview-image-fallback__icon" aria-hidden="true">图</div>
+                      <div id="attachment-image-fallback-text" class="upload-preview-image-fallback__text">正在生成预览</div>
+                    </div>
                     <div id="attachment-document-preview" class="upload-preview-document" hidden>
                       <div class="upload-preview-document__page">
                         <div class="upload-preview-document__band"></div>
@@ -861,6 +912,8 @@
         const attachmentPlaceholder = document.getElementById("attachment-placeholder");
         const attachmentPreview = document.getElementById("attachment-preview");
         const attachmentImagePreview = document.getElementById("attachment-image-preview");
+        const attachmentImageFallback = document.getElementById("attachment-image-fallback");
+        const attachmentImageFallbackText = document.getElementById("attachment-image-fallback-text");
         const attachmentDocumentPreview = document.getElementById("attachment-document-preview");
         const uploadTitle = document.getElementById("upload-title");
         const uploadMeta = document.getElementById("upload-meta");
@@ -905,6 +958,15 @@
           attachmentPreviewUrl = "";
         }
 
+        function resetAttachmentImagePreview() {
+          attachmentImagePreview.hidden = true;
+          attachmentImagePreview.removeAttribute("src");
+          attachmentImagePreview.onload = null;
+          attachmentImagePreview.onerror = null;
+          attachmentImageFallback.hidden = true;
+          attachmentImageFallbackText.textContent = "正在生成预览";
+        }
+
         function getAttachmentKind(file) {
           if (!file) {
             return "none";
@@ -942,6 +1004,24 @@
             });
 
             reader.readAsDataURL(file);
+          });
+        }
+
+        function waitForAttachmentImageLoad(source, requestId) {
+          return new Promise((resolve) => {
+            attachmentImagePreview.onload = () => {
+              attachmentImagePreview.onload = null;
+              attachmentImagePreview.onerror = null;
+              resolve(requestId === attachmentPreviewRequestId);
+            };
+
+            attachmentImagePreview.onerror = () => {
+              attachmentImagePreview.onload = null;
+              attachmentImagePreview.onerror = null;
+              resolve(false);
+            };
+
+            attachmentImagePreview.src = source;
           });
         }
 
@@ -1031,8 +1111,7 @@
             uploadTitle.textContent = "上传文件";
             attachmentPlaceholder.hidden = false;
             attachmentPreview.hidden = true;
-            attachmentImagePreview.hidden = true;
-            attachmentImagePreview.removeAttribute("src");
+            resetAttachmentImagePreview();
             attachmentDocumentPreview.hidden = true;
             uploadMeta.hidden = true;
             uploadMeta.textContent = "";
@@ -1042,8 +1121,7 @@
 
           attachmentPlaceholder.hidden = true;
           attachmentPreview.hidden = false;
-          attachmentImagePreview.hidden = true;
-          attachmentImagePreview.removeAttribute("src");
+          resetAttachmentImagePreview();
           attachmentDocumentPreview.hidden = true;
           uploadTitle.textContent = "上传文件";
           uploadMeta.hidden = true;
@@ -1056,6 +1134,9 @@
             attachmentDropzone.classList.add("is-filled");
             return;
           }
+
+          attachmentImageFallback.hidden = false;
+          attachmentImageFallbackText.textContent = "正在生成预览";
 
           let previewSource = "";
           try {
@@ -1081,10 +1162,22 @@
 
           if (previewSource) {
             attachmentPreviewUrl = previewSource;
-            attachmentImagePreview.src = previewSource;
-            attachmentImagePreview.hidden = false;
+            const imageLoaded = await waitForAttachmentImageLoad(previewSource, requestId);
+            if (requestId !== attachmentPreviewRequestId) {
+              return;
+            }
+
+            if (imageLoaded) {
+              attachmentImagePreview.hidden = false;
+              attachmentImageFallback.hidden = true;
+            } else {
+              resetAttachmentImagePreview();
+              attachmentImageFallback.hidden = false;
+              attachmentImageFallbackText.textContent = "图片已选中";
+            }
           } else {
-            attachmentDocumentPreview.hidden = false;
+            attachmentImageFallback.hidden = false;
+            attachmentImageFallbackText.textContent = "图片已选中";
           }
 
           attachmentDropzone.classList.add("is-filled");
