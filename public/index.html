@@ -381,21 +381,28 @@
       }
 
       .upload-dropzone {
+        position: relative;
         height: 120px;
         border-radius: 18px;
         border: 1px dashed var(--upload-border);
         background: var(--upload-bg);
-        display: grid;
-        place-items: center;
-        text-align: center;
         color: var(--brand);
         cursor: pointer;
-        padding: 16px;
+        overflow: hidden;
       }
 
       .upload-dropzone.is-filled {
         border-style: solid;
         background: var(--upload-filled-bg);
+      }
+
+      .upload-placeholder {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 16px;
       }
 
       .upload-dropzone .plus {
@@ -422,6 +429,74 @@
         line-height: 1.5;
         color: var(--ink-soft);
         word-break: break-all;
+      }
+
+      .upload-preview[hidden],
+      .upload-placeholder[hidden] {
+        display: none;
+      }
+
+      .upload-preview {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(180deg, var(--upload-bg) 0%, var(--upload-filled-bg) 100%);
+      }
+
+      .upload-preview-media {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+        pointer-events: none;
+      }
+
+      .upload-preview-document {
+        width: 82px;
+        height: 96px;
+        position: relative;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(244, 246, 242, 0.94) 100%);
+        box-shadow: 0 14px 24px rgba(23, 25, 23, 0.12);
+        overflow: hidden;
+        pointer-events: none;
+      }
+
+      .upload-preview-document::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 22px;
+        height: 22px;
+        background: linear-gradient(135deg, rgba(221, 224, 218, 0.9) 0%, rgba(255, 255, 255, 0.98) 100%);
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+      }
+
+      .upload-preview-document__page {
+        padding: 16px 14px 14px;
+      }
+
+      .upload-preview-document__band {
+        width: 44px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(36, 54, 47, 0.14);
+        margin-bottom: 12px;
+      }
+
+      .upload-preview-document__line {
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(36, 54, 47, 0.12);
+        margin-bottom: 8px;
+      }
+
+      .upload-preview-document__line:last-child {
+        width: 70%;
+        margin-bottom: 0;
       }
 
       .visually-hidden {
@@ -687,10 +762,21 @@
 
               <div class="upload-shell">
                 <label class="upload-dropzone" id="attachment-dropzone" for="attachment">
-                  <div>
+                  <div class="upload-placeholder" id="attachment-placeholder">
                     <div class="plus" aria-hidden="true">+</div>
                     <div class="upload-title" id="upload-title">上传文件</div>
                     <div class="upload-meta" id="upload-meta" hidden></div>
+                  </div>
+                  <div class="upload-preview" id="attachment-preview" hidden aria-hidden="true">
+                    <img id="attachment-image-preview" class="upload-preview-media" alt="" hidden />
+                    <div id="attachment-document-preview" class="upload-preview-document" hidden>
+                      <div class="upload-preview-document__page">
+                        <div class="upload-preview-document__band"></div>
+                        <div class="upload-preview-document__line"></div>
+                        <div class="upload-preview-document__line"></div>
+                        <div class="upload-preview-document__line"></div>
+                      </div>
+                    </div>
                   </div>
                 </label>
                 <input
@@ -749,7 +835,7 @@
       >
         <h2 id="success-modal-title" class="success-modal__title">提交成功</h2>
         <p id="success-modal-message" class="success-modal__message">
-          我们已收到您的开票信息，发票将于1个工作日内送达您的邮箱。
+          我们已收到您的开票信息，发票将于1个工作日内送达您的邮箱，请注意查收。
         </p>
         <div class="success-modal__actions">
           <button id="success-modal-close-button" class="cta" type="button">关闭此页面</button>
@@ -768,6 +854,10 @@
         const emailInput = document.getElementById("email");
         const attachmentInput = document.getElementById("attachment");
         const attachmentDropzone = document.getElementById("attachment-dropzone");
+        const attachmentPlaceholder = document.getElementById("attachment-placeholder");
+        const attachmentPreview = document.getElementById("attachment-preview");
+        const attachmentImagePreview = document.getElementById("attachment-image-preview");
+        const attachmentDocumentPreview = document.getElementById("attachment-document-preview");
         const uploadTitle = document.getElementById("upload-title");
         const uploadMeta = document.getElementById("upload-meta");
         const submitButton = document.getElementById("submit-button");
@@ -776,6 +866,7 @@
         const successModalMessage = document.getElementById("success-modal-message");
         const successModalCloseButton = document.getElementById("success-modal-close-button");
         const defaultSubmitButtonLabel = "保存并提交开票信息";
+        let attachmentPreviewUrl = "";
 
         const allowedAttachmentTypes = new Set([
           "image/png",
@@ -802,12 +893,13 @@
           feedback.dataset.variant = variant;
         }
 
-        function formatBytes(bytes) {
-          if (bytes < 1024 * 1024) {
-            return `${Math.max(1, Math.round(bytes / 1024))}KB`;
+        function clearAttachmentPreviewUrl() {
+          if (!attachmentPreviewUrl) {
+            return;
           }
 
-          return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+          URL.revokeObjectURL(attachmentPreviewUrl);
+          attachmentPreviewUrl = "";
         }
 
         function normalizeRoutePath(pathname) {
@@ -888,17 +980,38 @@
 
         function syncAttachmentUi() {
           const file = attachmentInput.files && attachmentInput.files[0];
+          clearAttachmentPreviewUrl();
+
           if (!file) {
             uploadTitle.textContent = "上传文件";
+            attachmentPlaceholder.hidden = false;
+            attachmentPreview.hidden = true;
+            attachmentImagePreview.hidden = true;
+            attachmentImagePreview.removeAttribute("src");
+            attachmentDocumentPreview.hidden = true;
             uploadMeta.hidden = true;
             uploadMeta.textContent = "";
             attachmentDropzone.classList.remove("is-filled");
             return;
           }
 
-          uploadTitle.textContent = file.name;
-          uploadMeta.hidden = false;
-          uploadMeta.textContent = `${formatBytes(file.size)} · ${file.type || "未知类型"}`;
+          attachmentPlaceholder.hidden = true;
+          attachmentPreview.hidden = false;
+          attachmentImagePreview.hidden = true;
+          attachmentImagePreview.removeAttribute("src");
+          attachmentDocumentPreview.hidden = true;
+          uploadTitle.textContent = "上传文件";
+          uploadMeta.hidden = true;
+          uploadMeta.textContent = "";
+
+          if (file.type === "image/png" || file.type === "image/jpeg") {
+            attachmentPreviewUrl = URL.createObjectURL(file);
+            attachmentImagePreview.src = attachmentPreviewUrl;
+            attachmentImagePreview.hidden = false;
+          } else {
+            attachmentDocumentPreview.hidden = false;
+          }
+
           attachmentDropzone.classList.add("is-filled");
         }
 
@@ -993,7 +1106,7 @@
             setInvoiceType("enterprise");
             syncStoreKey();
             syncAttachmentUi();
-            showSuccessModal("我们已收到您的开票信息，发票将于1个工作日内送达您的邮箱。");
+            showSuccessModal("我们已收到您的开票信息，发票将于1个工作日内送达您的邮箱，请注意查收。");
           } catch (error) {
             const message =
               error instanceof Error && error.message
