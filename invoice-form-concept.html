@@ -381,30 +381,21 @@
       }
 
       .upload-dropzone {
-        display: block;
-        width: 100%;
-        position: relative;
         height: 120px;
         border-radius: 18px;
         border: 1px dashed var(--upload-border);
         background: var(--upload-bg);
+        display: grid;
+        place-items: center;
+        text-align: center;
         color: var(--brand);
         cursor: pointer;
-        overflow: hidden;
+        padding: 16px;
       }
 
       .upload-dropzone.is-filled {
         border-style: solid;
         background: var(--upload-filled-bg);
-      }
-
-      .upload-placeholder {
-        width: 100%;
-        height: 100%;
-        display: grid;
-        place-items: center;
-        text-align: center;
-        padding: 16px;
       }
 
       .upload-dropzone .plus {
@@ -431,126 +422,6 @@
         line-height: 1.5;
         color: var(--ink-soft);
         word-break: break-all;
-      }
-
-      .upload-preview[hidden],
-      .upload-placeholder[hidden] {
-        display: none;
-      }
-
-      .upload-preview {
-        position: absolute;
-        inset: 0;
-        display: grid;
-        place-items: center;
-        padding: 8px;
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(244, 246, 242, 0.92) 100%),
-          repeating-linear-gradient(
-            45deg,
-            rgba(36, 54, 47, 0.04) 0,
-            rgba(36, 54, 47, 0.04) 10px,
-            rgba(255, 255, 255, 0.36) 10px,
-            rgba(255, 255, 255, 0.36) 20px
-          );
-      }
-
-      .upload-preview-media {
-        width: auto;
-        height: auto;
-        max-width: 100%;
-        max-height: 100%;
-        display: block;
-        border-radius: 12px;
-        border: 1px solid var(--line);
-        background: var(--surface-strong);
-        box-shadow: 0 12px 24px rgba(23, 25, 23, 0.08);
-        pointer-events: none;
-      }
-
-      .upload-preview-media[hidden],
-      .upload-preview-image-fallback[hidden],
-      .upload-preview-document[hidden] {
-        display: none;
-      }
-
-      .upload-preview-image-fallback {
-        position: absolute;
-        inset: 8px;
-        display: grid;
-        place-items: center;
-        gap: 10px;
-        border-radius: 14px;
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.72);
-        color: var(--ink-soft);
-        text-align: center;
-        pointer-events: none;
-      }
-
-      .upload-preview-image-fallback__icon {
-        width: 40px;
-        height: 40px;
-        display: grid;
-        place-items: center;
-        border-radius: 999px;
-        background: var(--surface-strong);
-        border: 1px solid var(--line);
-        color: var(--brand);
-        font-size: 16px;
-        font-weight: 800;
-      }
-
-      .upload-preview-image-fallback__text {
-        font-size: 13px;
-        line-height: 1.5;
-      }
-
-      .upload-preview-document {
-        width: 82px;
-        height: 96px;
-        position: relative;
-        border-radius: 18px;
-        border: 1px solid var(--line);
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(244, 246, 242, 0.94) 100%);
-        box-shadow: 0 14px 24px rgba(23, 25, 23, 0.12);
-        overflow: hidden;
-        pointer-events: none;
-      }
-
-      .upload-preview-document::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 22px;
-        height: 22px;
-        background: linear-gradient(135deg, rgba(221, 224, 218, 0.9) 0%, rgba(255, 255, 255, 0.98) 100%);
-        clip-path: polygon(0 0, 100% 0, 100% 100%);
-      }
-
-      .upload-preview-document__page {
-        padding: 16px 14px 14px;
-      }
-
-      .upload-preview-document__band {
-        width: 44px;
-        height: 8px;
-        border-radius: 999px;
-        background: rgba(36, 54, 47, 0.14);
-        margin-bottom: 12px;
-      }
-
-      .upload-preview-document__line {
-        height: 6px;
-        border-radius: 999px;
-        background: rgba(36, 54, 47, 0.12);
-        margin-bottom: 8px;
-      }
-
-      .upload-preview-document__line:last-child {
-        width: 70%;
-        margin-bottom: 0;
       }
 
       .visually-hidden {
@@ -816,25 +687,10 @@
 
               <div class="upload-shell">
                 <label class="upload-dropzone" id="attachment-dropzone" for="attachment">
-                  <div class="upload-placeholder" id="attachment-placeholder">
+                  <div>
                     <div class="plus" aria-hidden="true">+</div>
                     <div class="upload-title" id="upload-title">上传文件</div>
                     <div class="upload-meta" id="upload-meta" hidden></div>
-                  </div>
-                  <div class="upload-preview" id="attachment-preview" hidden aria-hidden="true">
-                    <img id="attachment-image-preview" class="upload-preview-media" alt="" hidden />
-                    <div id="attachment-image-fallback" class="upload-preview-image-fallback" hidden>
-                      <div class="upload-preview-image-fallback__icon" aria-hidden="true">图</div>
-                      <div id="attachment-image-fallback-text" class="upload-preview-image-fallback__text">正在生成预览</div>
-                    </div>
-                    <div id="attachment-document-preview" class="upload-preview-document" hidden>
-                      <div class="upload-preview-document__page">
-                        <div class="upload-preview-document__band"></div>
-                        <div class="upload-preview-document__line"></div>
-                        <div class="upload-preview-document__line"></div>
-                        <div class="upload-preview-document__line"></div>
-                      </div>
-                    </div>
                   </div>
                 </label>
                 <input
@@ -912,12 +768,6 @@
         const emailInput = document.getElementById("email");
         const attachmentInput = document.getElementById("attachment");
         const attachmentDropzone = document.getElementById("attachment-dropzone");
-        const attachmentPlaceholder = document.getElementById("attachment-placeholder");
-        const attachmentPreview = document.getElementById("attachment-preview");
-        const attachmentImagePreview = document.getElementById("attachment-image-preview");
-        const attachmentImageFallback = document.getElementById("attachment-image-fallback");
-        const attachmentImageFallbackText = document.getElementById("attachment-image-fallback-text");
-        const attachmentDocumentPreview = document.getElementById("attachment-document-preview");
         const uploadTitle = document.getElementById("upload-title");
         const uploadMeta = document.getElementById("upload-meta");
         const submitButton = document.getElementById("submit-button");
@@ -926,8 +776,11 @@
         const successModalMessage = document.getElementById("success-modal-message");
         const successModalCloseButton = document.getElementById("success-modal-close-button");
         const defaultSubmitButtonLabel = "保存并提交开票信息";
-        let attachmentPreviewUrl = "";
-        let attachmentPreviewRequestId = 0;
+        const allowedAttachmentTypes = new Set([
+          "image/png",
+          "image/jpeg",
+          "application/pdf",
+        ]);
 
         const pathToStoreKey = new Map([
           ["/fuzzy", "fuzzy"],
@@ -949,112 +802,12 @@
           feedback.dataset.variant = variant;
         }
 
-        function clearAttachmentPreviewUrl() {
-          if (!attachmentPreviewUrl) {
-            return;
+        function formatBytes(bytes) {
+          if (bytes < 1024 * 1024) {
+            return `${Math.max(1, Math.round(bytes / 1024))}KB`;
           }
 
-          if (
-            attachmentPreviewUrl.startsWith("blob:") &&
-            typeof URL !== "undefined" &&
-            typeof URL.revokeObjectURL === "function"
-          ) {
-            URL.revokeObjectURL(attachmentPreviewUrl);
-          }
-
-          attachmentPreviewUrl = "";
-        }
-
-        function resetAttachmentImagePreview() {
-          attachmentImagePreview.hidden = true;
-          attachmentImagePreview.removeAttribute("src");
-          attachmentImagePreview.onload = null;
-          attachmentImagePreview.onerror = null;
-          attachmentImageFallback.hidden = true;
-          attachmentImageFallbackText.textContent = "正在生成预览";
-        }
-
-        function getAttachmentKind(file) {
-          if (!file) {
-            return "none";
-          }
-
-          const normalizedName = typeof file.name === "string" ? file.name.toLowerCase() : "";
-          const isImageFile =
-            file.type === "image/png" ||
-            file.type === "image/jpeg" ||
-            normalizedName.endsWith(".png") ||
-            normalizedName.endsWith(".jpg") ||
-            normalizedName.endsWith(".jpeg");
-
-          if (isImageFile) {
-            return "image";
-          }
-
-          if (file.type === "application/pdf" || normalizedName.endsWith(".pdf")) {
-            return "pdf";
-          }
-
-          return "unsupported";
-        }
-
-        function readFileAsDataUrl(file) {
-          return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-
-            reader.addEventListener("load", () => {
-              resolve(typeof reader.result === "string" ? reader.result : "");
-            });
-
-            reader.addEventListener("error", () => {
-              reject(reader.error || new Error("读取文件失败"));
-            });
-
-            reader.readAsDataURL(file);
-          });
-        }
-
-        function createAttachmentPreviewSource(file) {
-          if (
-            typeof URL !== "undefined" &&
-            typeof URL.createObjectURL === "function"
-          ) {
-            return Promise.resolve(URL.createObjectURL(file));
-          }
-
-          return readFileAsDataUrl(file);
-        }
-
-        function waitForAttachmentImageLoad(source, requestId) {
-          return new Promise((resolve) => {
-            let isSettled = false;
-            let fallbackTimer = 0;
-
-            const finish = (isLoaded) => {
-              if (isSettled) {
-                return;
-              }
-
-              isSettled = true;
-              window.clearTimeout(fallbackTimer);
-              attachmentImagePreview.onload = null;
-              attachmentImagePreview.onerror = null;
-              resolve(isLoaded && requestId === attachmentPreviewRequestId);
-            };
-
-            attachmentImagePreview.onload = () => finish(true);
-            attachmentImagePreview.onerror = () => finish(false);
-            fallbackTimer = window.setTimeout(() => {
-              finish(attachmentImagePreview.naturalWidth > 0);
-            }, 3000);
-
-            attachmentImagePreview.hidden = false;
-            attachmentImagePreview.src = source;
-
-            if (attachmentImagePreview.complete) {
-              finish(attachmentImagePreview.naturalWidth > 0);
-            }
-          });
+          return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
         }
 
         function normalizeRoutePath(pathname) {
@@ -1122,8 +875,7 @@
             return "请上传付款凭证。";
           }
 
-          const attachmentKind = getAttachmentKind(file);
-          if (attachmentKind === "unsupported") {
+          if (!allowedAttachmentTypes.has(file.type)) {
             return "仅支持 PNG、JPG、PDF 文件。";
           }
 
@@ -1134,92 +886,19 @@
           return "";
         }
 
-        async function syncAttachmentUi() {
-          const requestId = ++attachmentPreviewRequestId;
+        function syncAttachmentUi() {
           const file = attachmentInput.files && attachmentInput.files[0];
-          clearAttachmentPreviewUrl();
-
           if (!file) {
             uploadTitle.textContent = "上传文件";
-            attachmentPlaceholder.hidden = false;
-            attachmentPreview.hidden = true;
-            resetAttachmentImagePreview();
-            attachmentDocumentPreview.hidden = true;
             uploadMeta.hidden = true;
             uploadMeta.textContent = "";
             attachmentDropzone.classList.remove("is-filled");
             return;
           }
 
-          attachmentPlaceholder.hidden = true;
-          attachmentPreview.hidden = false;
-          resetAttachmentImagePreview();
-          attachmentDocumentPreview.hidden = true;
-          uploadTitle.textContent = "上传文件";
-          uploadMeta.hidden = true;
-          uploadMeta.textContent = "";
-
-          const attachmentKind = getAttachmentKind(file);
-
-          if (attachmentKind === "pdf" || attachmentKind === "unsupported") {
-            attachmentDocumentPreview.hidden = false;
-            attachmentDropzone.classList.add("is-filled");
-            return;
-          }
-
-          attachmentImageFallback.hidden = false;
-          attachmentImageFallbackText.textContent = "正在生成预览";
-
-          let previewSource = "";
-          try {
-            previewSource = await createAttachmentPreviewSource(file);
-          } catch (error) {
-            previewSource = "";
-          }
-
-          if (requestId !== attachmentPreviewRequestId) {
-            return;
-          }
-
-          if (
-            !previewSource &&
-            typeof URL !== "undefined" &&
-            typeof URL.createObjectURL === "function"
-          ) {
-            previewSource = URL.createObjectURL(file);
-          }
-
-          if (requestId !== attachmentPreviewRequestId) {
-            if (
-              previewSource.startsWith("blob:") &&
-              typeof URL !== "undefined" &&
-              typeof URL.revokeObjectURL === "function"
-            ) {
-              URL.revokeObjectURL(previewSource);
-            }
-            return;
-          }
-
-          if (previewSource) {
-            attachmentPreviewUrl = previewSource;
-            const imageLoaded = await waitForAttachmentImageLoad(previewSource, requestId);
-            if (requestId !== attachmentPreviewRequestId) {
-              return;
-            }
-
-            if (imageLoaded) {
-              attachmentImagePreview.hidden = false;
-              attachmentImageFallback.hidden = true;
-            } else {
-              resetAttachmentImagePreview();
-              attachmentImageFallback.hidden = false;
-              attachmentImageFallbackText.textContent = "图片已选中";
-            }
-          } else {
-            attachmentImageFallback.hidden = false;
-            attachmentImageFallbackText.textContent = "图片已选中";
-          }
-
+          uploadTitle.textContent = file.name;
+          uploadMeta.hidden = false;
+          uploadMeta.textContent = `${formatBytes(file.size)} · ${file.type || "未知类型"}`;
           attachmentDropzone.classList.add("is-filled");
         }
 
@@ -1230,7 +909,7 @@
         });
 
         attachmentInput.addEventListener("change", () => {
-          void syncAttachmentUi();
+          syncAttachmentUi();
         });
 
         attachmentDropzone.addEventListener("dragover", (event) => {
@@ -1313,7 +992,7 @@
             form.reset();
             setInvoiceType("enterprise");
             syncStoreKey();
-            await syncAttachmentUi();
+            syncAttachmentUi();
             showSuccessModal("我们已收到您的开票信息，发票将于1个工作日内送达您的邮箱，请注意查收。");
           } catch (error) {
             const message =
@@ -1331,7 +1010,7 @@
           setSubmitButtonState({ disabled: true });
           setFeedback("当前链接无效，请使用门店提供的专属开票链接。", "error");
         }
-        void syncAttachmentUi();
+        syncAttachmentUi();
       })();
     </script>
   </body>
