@@ -120,6 +120,10 @@
         color: var(--ink);
       }
 
+      body.has-modal {
+        overflow: hidden;
+      }
+
       .stage {
         width: 100%;
         min-height: 100vh;
@@ -480,6 +484,68 @@
         color: var(--feedback-success-ink);
       }
 
+      .success-modal[hidden] {
+        display: none;
+      }
+
+      .success-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .success-modal__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(18, 20, 18, 0.42);
+        backdrop-filter: blur(8px);
+      }
+
+      .success-modal__panel {
+        position: relative;
+        width: min(100%, 360px);
+        padding: 24px 20px 20px;
+        border-radius: 24px;
+        border: 1px solid var(--line);
+        background: var(--surface-strong);
+        box-shadow: var(--phone-shadow);
+      }
+
+      .success-modal__badge {
+        width: 52px;
+        height: 52px;
+        display: grid;
+        place-items: center;
+        border-radius: 18px;
+        border: 1px solid var(--feedback-success-border);
+        background: var(--feedback-success-bg);
+        color: var(--feedback-success-ink);
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+      }
+
+      .success-modal__title {
+        margin: 18px 0 10px;
+        font-size: 22px;
+        font-weight: 800;
+        line-height: 1.2;
+      }
+
+      .success-modal__message {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      .success-modal__actions {
+        margin-top: 20px;
+      }
+
       @media (max-width: 520px) {
         .stage {
           padding: 0;
@@ -686,6 +752,23 @@
         </div>
       </div>
     </main>
+    <div id="success-modal" class="success-modal" hidden>
+      <div class="success-modal__backdrop" aria-hidden="true"></div>
+      <section
+        class="success-modal__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="success-modal-title"
+        aria-describedby="success-modal-message"
+      >
+        <div class="success-modal__badge" aria-hidden="true">OK</div>
+        <h2 id="success-modal-title" class="success-modal__title">提交成功</h2>
+        <p id="success-modal-message" class="success-modal__message">我们已收到开票信息。</p>
+        <div class="success-modal__actions">
+          <button id="success-modal-close-button" class="cta" type="button">关闭此页面</button>
+        </div>
+      </section>
+    </div>
     <script>
       (() => {
         const form = document.getElementById("invoice-form");
@@ -702,6 +785,9 @@
         const uploadMeta = document.getElementById("upload-meta");
         const submitButton = document.getElementById("submit-button");
         const feedback = document.getElementById("form-feedback");
+        const successModal = document.getElementById("success-modal");
+        const successModalMessage = document.getElementById("success-modal-message");
+        const successModalCloseButton = document.getElementById("success-modal-close-button");
         const defaultSubmitButtonLabel = "保存并提交开票信息";
 
         const allowedAttachmentTypes = new Set([
@@ -751,11 +837,18 @@
         function setSubmitButtonState({
           disabled = false,
           label = defaultSubmitButtonLabel,
-          type = "submit",
         } = {}) {
           submitButton.disabled = disabled;
           submitButton.textContent = label;
-          submitButton.type = type;
+        }
+
+        function showSuccessModal(message) {
+          successModalMessage.textContent = message;
+          successModal.hidden = false;
+          document.body.classList.add("has-modal");
+          window.requestAnimationFrame(() => {
+            successModalCloseButton.focus();
+          });
         }
 
         function setInvoiceType(value) {
@@ -786,7 +879,7 @@
               return;
             }
 
-            setFeedback("已提交成功。如当前浏览器不允许直接关闭，请手动关闭此页面。", "success");
+            showSuccessModal("已提交成功。如当前浏览器不允许直接关闭，请手动关闭此页面。");
           }, 300);
         }
 
@@ -847,12 +940,7 @@
           attachmentInput.dispatchEvent(new Event("change"));
         });
 
-        submitButton.addEventListener("click", (event) => {
-          if (submitButton.type !== "button") {
-            return;
-          }
-
-          event.preventDefault();
+        successModalCloseButton.addEventListener("click", () => {
           closeCurrentPage();
         });
 
@@ -889,7 +977,6 @@
             return;
           }
 
-          let submissionSucceeded = false;
           setSubmitButtonState({
             disabled: true,
             label: "提交中...",
@@ -919,8 +1006,7 @@
             setInvoiceType("enterprise");
             syncStoreKey();
             syncAttachmentUi();
-            submissionSucceeded = true;
-            setFeedback("提交成功，我们已收到开票信息。可点击下方按钮关闭此页面。", "success");
+            showSuccessModal("我们已收到开票信息。");
           } catch (error) {
             const message =
               error instanceof Error && error.message
@@ -928,14 +1014,6 @@
                 : "提交失败，请稍后重试。";
             setFeedback(message, "error");
           } finally {
-            if (submissionSucceeded) {
-              setSubmitButtonState({
-                label: "关闭此页面",
-                type: "button",
-              });
-              return;
-            }
-
             setSubmitButtonState();
           }
         });
