@@ -468,7 +468,9 @@
         pointer-events: none;
       }
 
-      .upload-preview-image-fallback[hidden] {
+      .upload-preview-media[hidden],
+      .upload-preview-image-fallback[hidden],
+      .upload-preview-document[hidden] {
         display: none;
       }
 
@@ -952,7 +954,11 @@
             return;
           }
 
-          if (attachmentPreviewUrl.startsWith("blob:")) {
+          if (
+            attachmentPreviewUrl.startsWith("blob:") &&
+            typeof URL !== "undefined" &&
+            typeof URL.revokeObjectURL === "function"
+          ) {
             URL.revokeObjectURL(attachmentPreviewUrl);
           }
 
@@ -1008,21 +1014,46 @@
           });
         }
 
+        function createAttachmentPreviewSource(file) {
+          if (
+            typeof URL !== "undefined" &&
+            typeof URL.createObjectURL === "function"
+          ) {
+            return Promise.resolve(URL.createObjectURL(file));
+          }
+
+          return readFileAsDataUrl(file);
+        }
+
         function waitForAttachmentImageLoad(source, requestId) {
           return new Promise((resolve) => {
-            attachmentImagePreview.onload = () => {
+            let isSettled = false;
+            let fallbackTimer = 0;
+
+            const finish = (isLoaded) => {
+              if (isSettled) {
+                return;
+              }
+
+              isSettled = true;
+              window.clearTimeout(fallbackTimer);
               attachmentImagePreview.onload = null;
               attachmentImagePreview.onerror = null;
-              resolve(requestId === attachmentPreviewRequestId);
+              resolve(isLoaded && requestId === attachmentPreviewRequestId);
             };
 
-            attachmentImagePreview.onerror = () => {
-              attachmentImagePreview.onload = null;
-              attachmentImagePreview.onerror = null;
-              resolve(false);
-            };
+            attachmentImagePreview.onload = () => finish(true);
+            attachmentImagePreview.onerror = () => finish(false);
+            fallbackTimer = window.setTimeout(() => {
+              finish(attachmentImagePreview.naturalWidth > 0);
+            }, 3000);
 
+            attachmentImagePreview.hidden = false;
             attachmentImagePreview.src = source;
+
+            if (attachmentImagePreview.complete) {
+              finish(attachmentImagePreview.naturalWidth > 0);
+            }
           });
         }
 
@@ -1141,7 +1172,7 @@
 
           let previewSource = "";
           try {
-            previewSource = await readFileAsDataUrl(file);
+            previewSource = await createAttachmentPreviewSource(file);
           } catch (error) {
             previewSource = "";
           }
@@ -1150,12 +1181,20 @@
             return;
           }
 
-          if (!previewSource && typeof URL.createObjectURL === "function") {
+          if (
+            !previewSource &&
+            typeof URL !== "undefined" &&
+            typeof URL.createObjectURL === "function"
+          ) {
             previewSource = URL.createObjectURL(file);
           }
 
           if (requestId !== attachmentPreviewRequestId) {
-            if (previewSource.startsWith("blob:")) {
+            if (
+              previewSource.startsWith("blob:") &&
+              typeof URL !== "undefined" &&
+              typeof URL.revokeObjectURL === "function"
+            ) {
               URL.revokeObjectURL(previewSource);
             }
             return;
