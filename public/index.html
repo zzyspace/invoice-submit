@@ -514,22 +514,8 @@
         box-shadow: var(--phone-shadow);
       }
 
-      .success-modal__badge {
-        width: 52px;
-        height: 52px;
-        display: grid;
-        place-items: center;
-        border-radius: 18px;
-        border: 1px solid var(--feedback-success-border);
-        background: var(--feedback-success-bg);
-        color: var(--feedback-success-ink);
-        font-size: 15px;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-      }
-
       .success-modal__title {
-        margin: 18px 0 10px;
+        margin: 0 0 10px;
         font-size: 22px;
         font-weight: 800;
         line-height: 1.2;
@@ -761,9 +747,10 @@
         aria-labelledby="success-modal-title"
         aria-describedby="success-modal-message"
       >
-        <div class="success-modal__badge" aria-hidden="true">OK</div>
         <h2 id="success-modal-title" class="success-modal__title">提交成功</h2>
-        <p id="success-modal-message" class="success-modal__message">我们已收到开票信息。</p>
+        <p id="success-modal-message" class="success-modal__message">
+          我们已收到您的开票信息，发票将于1个工作日内送达您的邮箱。
+        </p>
         <div class="success-modal__actions">
           <button id="success-modal-close-button" class="cta" type="button">关闭此页面</button>
         </div>
@@ -1006,7 +993,7 @@
             setInvoiceType("enterprise");
             syncStoreKey();
             syncAttachmentUi();
-            showSuccessModal("我们已收到开票信息。");
+            showSuccessModal("我们已收到您的开票信息，发票将于1个工作日内送达您的邮箱。");
           } catch (error) {
             const message =
               error instanceof Error && error.message
