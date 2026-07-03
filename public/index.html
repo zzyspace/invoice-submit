@@ -808,7 +808,7 @@
       >
         <h2 id="success-modal-title" class="success-modal__title">提交成功</h2>
         <p id="success-modal-message" class="success-modal__message">
-          我们已收到您的开票信息，发票将于1个工作日内送达您的邮箱，请注意查收。
+          我们已收到您的开票信息，发票将于2个工作日内送达您的邮箱，请注意查收。
         </p>
         <div class="success-modal__actions">
           <button id="success-modal-close-button" class="cta" type="button">关闭此页面</button>
@@ -1091,7 +1091,7 @@
             setInvoiceType("enterprise");
             syncStoreKey();
             syncAttachmentUi();
-            showSuccessModal("我们已收到您的开票信息，发票将于1个工作日内送达您的邮箱，请注意查收。");
+            showSuccessModal("我们已收到您的开票信息，发票将于2个工作日内送达您的邮箱，请注意查收。");
           } catch (error) {
             const message =
               error instanceof Error && error.message
