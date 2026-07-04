@@ -52,7 +52,7 @@ export INVOICE_ADMIN_PASSWORD='change-this-password'
 
 然后访问：
 
-- `http://127.0.0.1:8787/admin`
+- `http://127.0.0.1:8787/invoice`
 
 本地默认数据目录：
 
@@ -173,7 +173,7 @@ systemctl restart invoice-submit.service
 
 后台入口：
 
-- `http://<server-ip>:8080/admin`
+- `http://<server-ip>:8080/invoice`
 
 ## 初始化数据库
 
@@ -232,7 +232,7 @@ mkdir -p /var/lib/invoice-submit/uploads
 
 后台是一个最小只读页面，默认需要 HTTP Basic Auth：
 
-- 页面：`/admin`
+- 页面：`/invoice`
 - 列表接口：`/api/admin/submissions`
 - 附件查看：`/api/admin/submissions/:id/attachment`
 
@@ -254,7 +254,7 @@ mkdir -p /var/lib/invoice-submit/uploads
 - 监听 `8080`
 - 静态目录：`/opt/invoice-submit/current/public`
 - 仅开放 `/fuzzy`、`/fuzzy_qz`、`/peanut` 三个开票页面路径
-- `/admin` 反代到 `127.0.0.1:8787/admin`
+- `/invoice` 反代到 `127.0.0.1:8787/invoice`
 - `/api/` 反代到 `127.0.0.1:8787`
 - `client_max_body_size 20M`
 

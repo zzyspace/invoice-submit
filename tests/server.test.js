@@ -408,6 +408,30 @@ test("管理员接口需要 Basic Auth", async () => {
   });
 });
 
+test("管理员页面入口改为 /invoice", async () => {
+  const db = createTestDatabase();
+  const tempDir = createTempDirectory();
+  const app = createApp({
+    db,
+    uploadDirectory: path.join(tempDir, "uploads"),
+    staticDir: path.join(process.cwd(), "public"),
+    adminCredentials: { username: "admin", password: "secret-pass" },
+  });
+
+  await withServer(app, async (baseUrl) => {
+    const invoiceResponse = await fetch(`${baseUrl}/invoice`, {
+      headers: createAdminAuthHeaders(),
+    });
+    assert.equal(invoiceResponse.status, 200);
+    assert.match(await invoiceResponse.text(), /发票信息后台/);
+
+    const legacyAdminResponse = await fetch(`${baseUrl}/admin`, {
+      headers: createAdminAuthHeaders(),
+    });
+    assert.equal(legacyAdminResponse.status, 404);
+  });
+});
+
 test("管理员可以分页查看提交记录", async () => {
   const db = createTestDatabase();
   const tempDir = createTempDirectory();
