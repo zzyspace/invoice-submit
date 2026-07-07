@@ -676,9 +676,21 @@
         personal: "个人",
       };
 
+      function formatDisplayValue(value) {
+        if (value === null || value === undefined) {
+          return "-";
+        }
+
+        if (typeof value === "string" && value.trim() === "") {
+          return "-";
+        }
+
+        return String(value);
+      }
+
       function formatDate(value) {
         if (!value) {
-          return "无";
+          return "-";
         }
 
         const date = new Date(value);
@@ -862,7 +874,7 @@
 
           row.appendChild(
             createCell(
-              item.submit_id === null || item.submit_id === undefined ? "无" : String(item.submit_id),
+              formatDisplayValue(item.submit_id),
               "mono"
             )
           );
@@ -872,15 +884,15 @@
 
           const titleCell = document.createElement("td");
           const titleStrong = document.createElement("div");
-          titleStrong.textContent = item.invoice_title || "无";
+          titleStrong.textContent = formatDisplayValue(item.invoice_title);
           const typeWrap = document.createElement("div");
           typeWrap.className = "title-meta";
           typeWrap.appendChild(createTypeTag(item.invoice_type));
           titleCell.append(titleStrong, typeWrap);
           row.appendChild(titleCell);
 
-          row.appendChild(createCell(item.tax_number || "无"));
-          row.appendChild(createCell(item.email || "无"));
+          row.appendChild(createCell(formatDisplayValue(item.tax_number)));
+          row.appendChild(createCell(formatDisplayValue(item.email)));
 
           const attachmentCell = document.createElement("td");
           const attachmentLink = document.createElement("a");
@@ -902,8 +914,8 @@
           attachmentCell.append(attachmentLink, attachmentMeta);
           row.appendChild(attachmentCell);
 
-          row.appendChild(createCell(item.note || "无"));
-          row.appendChild(createCell(item.contact || "无"));
+          row.appendChild(createCell(formatDisplayValue(item.note)));
+          row.appendChild(createCell(formatDisplayValue(item.contact)));
 
           const actionsCell = document.createElement("td");
           actionsCell.className = "actions-cell";
