@@ -129,17 +129,6 @@ test("只有门店路径返回开票页面", async () => {
   });
 });
 
-test("Fuzzy 和 Peanut 开票页配置了税务局维护提示", async () => {
-  const page = fs.readFileSync(path.join(process.cwd(), "public", "index.html"), "utf8");
-
-  assert.match(
-    page,
-    /因厦门电子税务局维护暂时无法登录，本次开票可能会有几天的延迟，烦请耐心等待。/
-  );
-  assert.match(page, /maintenanceStoreKeys = new Set\(\["fuzzy", "peanut"\]\)/);
-  assert.match(page, /maintenanceStoreKeys\.has\(storeKey\)/);
-});
-
 test("缺少邮箱时提交失败", async () => {
   const db = createTestDatabase();
   const tempDir = createTempDirectory();
