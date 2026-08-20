@@ -797,24 +797,6 @@
         </div>
       </div>
     </main>
-    <div id="maintenance-modal" class="success-modal" hidden>
-      <div class="success-modal__backdrop" aria-hidden="true"></div>
-      <section
-        class="success-modal__panel"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="maintenance-modal-title"
-        aria-describedby="maintenance-modal-message"
-      >
-        <h2 id="maintenance-modal-title" class="success-modal__title">温馨提示</h2>
-        <p id="maintenance-modal-message" class="success-modal__message">
-          因厦门电子税务局维护暂时无法登录，本次开票可能会有几天的延迟，烦请耐心等待。
-        </p>
-        <div class="success-modal__actions">
-          <button id="maintenance-modal-close-button" class="cta" type="button">我知道了</button>
-        </div>
-      </section>
-    </div>
     <div id="success-modal" class="success-modal" hidden>
       <div class="success-modal__backdrop" aria-hidden="true"></div>
       <section
@@ -852,8 +834,6 @@
         const uploadMeta = document.getElementById("upload-meta");
         const submitButton = document.getElementById("submit-button");
         const feedback = document.getElementById("form-feedback");
-        const maintenanceModal = document.getElementById("maintenance-modal");
-        const maintenanceModalCloseButton = document.getElementById("maintenance-modal-close-button");
         const successModal = document.getElementById("success-modal");
         const successModalMessage = document.getElementById("success-modal-message");
         const successModalCloseButton = document.getElementById("success-modal-close-button");
@@ -869,7 +849,6 @@
           ["/fuzzy_qz", "fuzzy_qz"],
           ["/peanut", "peanut"],
         ]);
-        const maintenanceStoreKeys = new Set(["fuzzy", "peanut"]);
         const maxAttachmentBytes = 20 * 1024 * 1024;
         let attachmentPreviewUrl = "";
 
@@ -920,19 +899,6 @@
           window.requestAnimationFrame(() => {
             successModalCloseButton.focus();
           });
-        }
-
-        function showMaintenanceModal() {
-          maintenanceModal.hidden = false;
-          document.body.classList.add("has-modal");
-          window.requestAnimationFrame(() => {
-            maintenanceModalCloseButton.focus();
-          });
-        }
-
-        function closeMaintenanceModal() {
-          maintenanceModal.hidden = true;
-          document.body.classList.remove("has-modal");
         }
 
         function setInvoiceType(value) {
@@ -1063,10 +1029,6 @@
           closeCurrentPage();
         });
 
-        maintenanceModalCloseButton.addEventListener("click", () => {
-          closeMaintenanceModal();
-        });
-
         form.addEventListener("submit", async (event) => {
           event.preventDefault();
           setFeedback("", "");
@@ -1142,12 +1104,9 @@
         });
 
         setInvoiceType(invoiceTypeInput.value || "enterprise");
-        const storeKey = syncStoreKey();
-        if (!storeKey) {
+        if (!syncStoreKey()) {
           setSubmitButtonState({ disabled: true });
           setFeedback("当前链接无效，请使用门店提供的专属开票链接。", "error");
-        } else if (maintenanceStoreKeys.has(storeKey)) {
-          showMaintenanceModal();
         }
         syncAttachmentUi();
       })();
