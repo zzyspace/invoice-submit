@@ -84,6 +84,10 @@
         line-height: 1.7;
       }
 
+      .logout-form {
+        width: fit-content;
+      }
+
       .panel {
         background: var(--surface);
         border: 1px solid var(--line);
@@ -517,6 +521,10 @@
         <span class="eyebrow">Invoice Submit Admin</span>
         <h1>发票信息后台</h1>
         <p>查看最新开票提交记录，支持按门店和关键词筛选，并可直接预览用户上传的付款凭证。</p>
+        <form class="logout-form" method="post" action="/admin-logout">
+          <input type="hidden" name="returnTo" value="/invoice" />
+          <button type="submit">退出登录</button>
+        </form>
       </section>
 
       <section class="panel controls">
