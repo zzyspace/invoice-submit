@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#160f0b" />
+    <meta name="description" content="FUZZY 浮几 — Korean food, tea, wine and a little more time." />
+    <title>FUZZY 浮几</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --paper: #d8cfc1;
+        --paper-soft: rgba(223, 214, 202, 0.72);
+        --line: rgba(228, 218, 204, 0.42);
+        --ink: #130d09;
+        --panel: #1a110c;
+        --serif: Didot, "Bodoni 72", "Times New Roman", "Songti SC", serif;
+        --sans: "Helvetica Neue", Helvetica, "PingFang SC", Arial, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        background: var(--ink);
+        color: var(--paper);
+        font-family: var(--sans);
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .hero {
+        position: relative;
+        min-height: 100svh;
+        overflow: hidden;
+        isolation: isolate;
+        background: #170f0a url("/assets/fuzzy-hero.png") center center / cover no-repeat;
+      }
+
+      .hero::before,
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      .hero::before {
+        background:
+          linear-gradient(180deg, rgba(7, 5, 3, 0.28) 0%, transparent 24%, transparent 72%, rgba(5, 3, 2, 0.42) 100%),
+          linear-gradient(90deg, rgba(7, 5, 3, 0.14), transparent 28%, transparent 72%, rgba(7, 5, 3, 0.2));
+      }
+
+      .hero::after {
+        opacity: 0.11;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+        mix-blend-mode: soft-light;
+      }
+
+      .site-header {
+        position: absolute;
+        z-index: 4;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 122px;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        padding: 0 clamp(38px, 5.3vw, 84px);
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: clamp(30px, 3.4vw, 56px);
+      }
+
+      .nav a,
+      .reservation-link {
+        position: relative;
+        text-decoration: none;
+        font-size: 16px;
+        font-weight: 300;
+        letter-spacing: 0.01em;
+        color: rgba(233, 225, 214, 0.88);
+      }
+
+      .nav a::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        bottom: -8px;
+        left: 0;
+        height: 1px;
+        background: currentColor;
+        transform: scaleX(0);
+        transform-origin: right;
+        transition: transform 240ms ease;
+      }
+
+      .nav a:hover::after,
+      .nav a:focus-visible::after {
+        transform: scaleX(1);
+        transform-origin: left;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 8px;
+        text-decoration: none;
+        color: rgba(231, 222, 210, 0.86);
+      }
+
+      .brand-word {
+        font-size: 20px;
+        font-weight: 400;
+        line-height: 1;
+        letter-spacing: 0.06em;
+      }
+
+      .reservation-wrap {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .reservation-link {
+        min-width: 156px;
+        height: 45px;
+        display: inline-grid;
+        place-items: center;
+        border: 1px solid var(--line);
+        font-size: 12px;
+        letter-spacing: 0.19em;
+        text-transform: uppercase;
+        transition: color 220ms ease, background-color 220ms ease, border-color 220ms ease;
+      }
+
+      .reservation-link:hover,
+      .reservation-link:focus-visible {
+        background: var(--paper);
+        border-color: var(--paper);
+        color: #1a120d;
+      }
+
+      .mobile-menu {
+        display: none;
+      }
+
+      .hero-copy {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 50%;
+        width: min(820px, 70vw);
+        transform: translate(-50%, -36%);
+        text-align: center;
+      }
+
+      .hero-copy h1 {
+        margin: 0;
+        color: rgba(226, 216, 202, 0.9);
+        font-family: var(--serif);
+        font-size: clamp(52px, 5.05vw, 82px);
+        font-weight: 400;
+        line-height: 1.08;
+        letter-spacing: -0.025em;
+        text-wrap: balance;
+        text-shadow: 0 2px 24px rgba(0, 0, 0, 0.2);
+      }
+
+      .hero-copy h1 span {
+        display: block;
+      }
+
+      .side-note {
+        position: absolute;
+        z-index: 2;
+        top: 52%;
+        margin: 0;
+        color: rgba(228, 219, 208, 0.75);
+        font-size: 11px;
+        font-weight: 400;
+        line-height: 1;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        writing-mode: vertical-rl;
+      }
+
+      .side-note-left {
+        left: 55px;
+        transform: translateY(-50%) rotate(180deg);
+      }
+
+      .side-note-right {
+        right: 55px;
+        transform: translateY(-50%);
+      }
+
+      .scroll-cue {
+        position: absolute;
+        z-index: 2;
+        left: 50%;
+        bottom: 5.2vh;
+        width: 12px;
+        height: 12px;
+        border: 1px solid rgba(229, 220, 207, 0.72);
+        border-radius: 50%;
+        transform: translateX(-50%);
+        text-indent: -9999px;
+        transition: transform 180ms ease, background-color 180ms ease;
+      }
+
+      .scroll-cue:hover,
+      .scroll-cue:focus-visible {
+        background: rgba(229, 220, 207, 0.88);
+        transform: translateX(-50%) scale(1.18);
+      }
+
+      .story {
+        background: #17100c;
+      }
+
+      .story-section {
+        min-height: 74vh;
+        padding: clamp(80px, 11vw, 170px) clamp(28px, 9vw, 150px);
+        border-top: 1px solid rgba(226, 216, 202, 0.12);
+        display: grid;
+        grid-template-columns: minmax(120px, 0.6fr) minmax(280px, 1.4fr);
+        gap: clamp(40px, 8vw, 150px);
+        align-items: start;
+      }
+
+      .section-kicker {
+        margin: 7px 0 0;
+        color: rgba(226, 216, 202, 0.52);
+        font-size: 11px;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+      }
+
+      .section-copy h2 {
+        max-width: 830px;
+        margin: 0;
+        font-family: var(--serif);
+        font-size: clamp(42px, 5vw, 76px);
+        font-weight: 400;
+        line-height: 1.08;
+      }
+
+      .section-copy p {
+        max-width: 620px;
+        margin: 42px 0 0;
+        color: var(--paper-soft);
+        font-size: clamp(16px, 1.3vw, 20px);
+        font-weight: 300;
+        line-height: 1.85;
+      }
+
+      .menu-list {
+        margin-top: 58px;
+        border-top: 1px solid rgba(226, 216, 202, 0.19);
+      }
+
+      .menu-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        padding: 24px 0;
+        border-bottom: 1px solid rgba(226, 216, 202, 0.19);
+        color: var(--paper-soft);
+      }
+
+      .menu-row strong {
+        color: var(--paper);
+        font-family: var(--serif);
+        font-size: 25px;
+        font-weight: 400;
+      }
+
+      .location-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 48px;
+        margin-top: 58px;
+      }
+
+      .location-grid h3 {
+        margin: 0 0 12px;
+        color: rgba(226, 216, 202, 0.52);
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+      }
+
+      .location-grid p {
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.8;
+      }
+
+      .footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 24px;
+        padding: 30px clamp(28px, 5.3vw, 84px);
+        border-top: 1px solid rgba(226, 216, 202, 0.12);
+        background: #100b08;
+        color: rgba(226, 216, 202, 0.44);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      @media (max-width: 760px) {
+        .hero {
+          min-height: 100svh;
+          background-position: 38% center;
+        }
+
+        .site-header {
+          height: 94px;
+          grid-template-columns: 1fr auto;
+          padding: 0 24px;
+        }
+
+        .brand {
+          justify-self: start;
+        }
+
+        .nav,
+        .reservation-wrap {
+          display: none;
+        }
+
+        .mobile-menu {
+          position: relative;
+          z-index: 6;
+          display: block;
+          justify-self: end;
+        }
+
+        .mobile-menu summary {
+          width: 42px;
+          height: 42px;
+          display: grid;
+          place-items: center;
+          border: 1px solid var(--line);
+          color: transparent;
+          cursor: pointer;
+          list-style: none;
+        }
+
+        .mobile-menu summary::-webkit-details-marker {
+          display: none;
+        }
+
+        .mobile-menu summary::before,
+        .mobile-menu summary::after {
+          content: "";
+          position: absolute;
+          width: 17px;
+          height: 1px;
+          background: var(--paper);
+          transition: transform 180ms ease;
+        }
+
+        .mobile-menu summary::before {
+          transform: translateY(-4px);
+        }
+
+        .mobile-menu summary::after {
+          transform: translateY(4px);
+        }
+
+        .mobile-menu[open] summary::before {
+          transform: rotate(45deg);
+        }
+
+        .mobile-menu[open] summary::after {
+          transform: rotate(-45deg);
+        }
+
+        .mobile-menu nav {
+          position: fixed;
+          inset: 0;
+          z-index: -1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 30px;
+          background: rgba(19, 13, 9, 0.97);
+          backdrop-filter: blur(14px);
+        }
+
+        .mobile-menu nav a {
+          font-family: var(--serif);
+          font-size: 34px;
+          text-decoration: none;
+        }
+
+        .hero-copy {
+          top: 48%;
+          width: calc(100% - 48px);
+          transform: translate(-50%, -30%);
+        }
+
+        .hero-copy h1 {
+          font-size: clamp(43px, 12.5vw, 62px);
+          line-height: 1.12;
+        }
+
+        .side-note {
+          top: auto;
+          bottom: 95px;
+          font-size: 9px;
+        }
+
+        .side-note-left {
+          left: 21px;
+        }
+
+        .side-note-right {
+          right: 21px;
+        }
+
+        .scroll-cue {
+          bottom: 38px;
+        }
+
+        .story-section {
+          min-height: auto;
+          grid-template-columns: 1fr;
+          gap: 34px;
+          padding: 90px 28px;
+        }
+
+        .section-copy p {
+          margin-top: 30px;
+        }
+
+        .location-grid {
+          grid-template-columns: 1fr;
+          gap: 30px;
+        }
+
+        .footer {
+          flex-direction: column;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <header class="site-header">
+          <nav class="nav" aria-label="Primary navigation">
+            <a href="#about">About</a>
+            <a href="#menu">Menu</a>
+            <a href="#location">Location</a>
+          </nav>
+
+          <a class="brand" href="#top" aria-label="COME OVER 首页">
+            <span class="brand-word">COME OVER</span>
+          </a>
+
+          <div class="reservation-wrap">
+            <a class="reservation-link" href="#reservation">Reservation</a>
+          </div>
+
+          <details class="mobile-menu">
+            <summary aria-label="打开菜单">Menu</summary>
+            <nav aria-label="Mobile navigation">
+              <a href="#about">About</a>
+              <a href="#menu">Menu</a>
+              <a href="#location">Location</a>
+              <a href="#reservation">Reservation</a>
+            </nav>
+          </details>
+        </header>
+
+        <div id="top" class="hero-copy">
+          <h1 id="hero-title">
+            <span>"Eat, drink, stay awhile."</span>
+          </h1>
+        </div>
+
+        <p class="side-note side-note-left">Korean food</p>
+        <p class="side-note side-note-right">Tea · Wine · Night</p>
+        <a class="scroll-cue" href="#about">Discover more</a>
+      </section>
+
+      <div class="story">
+        <section id="about" class="story-section">
+          <p class="section-kicker">About us</p>
+          <div class="section-copy">
+            <h2>A table for slowing down.</h2>
+            <p>可以随时靠近的餐桌。我们做温暖的韩式料理，也准备茶与酒，愿每一次相聚都不必匆忙。</p>
+          </div>
+        </section>
+
+        <section id="menu" class="story-section">
+          <p class="section-kicker">At the table</p>
+          <div class="section-copy">
+            <h2>Food for sharing, drinks for lingering.</h2>
+            <div class="menu-list" aria-label="Menu categories">
+              <div class="menu-row"><strong>Korean food</strong><span>Seasonal · Comforting · Shared</span></div>
+              <div class="menu-row"><strong>Tea</strong><span>Quiet leaves · Warm cups</span></div>
+              <div class="menu-row"><strong>Wine</strong><span>Natural · Easy drinking</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="location" class="story-section">
+          <p class="section-kicker">Visit fuzzy</p>
+          <div class="section-copy">
+            <h2 id="reservation">Come over. Stay awhile.</h2>
+            <div class="location-grid">
+              <div>
+                <h3>Reservation</h3>
+                <p>预约方式与门店信息<br />敬请关注最新发布</p>
+              </div>
+              <div>
+                <h3>Opening hours</h3>
+                <p>Tea · Dinner · Late night<br />营业时间以门店公告为准</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <span>Tea · Wine · Korean food</span>
+    </footer>
+
+    <script>
+      const mobileMenu = document.querySelector(".mobile-menu");
+      mobileMenu?.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", () => mobileMenu.removeAttribute("open"));
+      });
+    </script>
+  </body>
+</html>

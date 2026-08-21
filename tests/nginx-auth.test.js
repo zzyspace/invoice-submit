@@ -27,6 +27,11 @@ test("nginx serves the canonical domain over HTTPS and redirects plain HTTP", ()
   assert.match(nginx, /location \^~ \/\.well-known\/acme-challenge\//);
 });
 
+test("nginx serves the FUZZY homepage at the canonical root", () => {
+  assert.match(nginx, /location = \/ \{\s*try_files \/home\.html =404;\s*\}/);
+  assert.match(nginx, /location = \/index\.html \{\s*return 404;\s*\}/);
+});
+
 test("invoice admin exposes a POST logout action", () => {
   assert.match(adminHtml, /<form class="logout-form" method="post" action="\/admin-logout">/);
   assert.match(adminHtml, /name="returnTo" value="\/invoice"/);

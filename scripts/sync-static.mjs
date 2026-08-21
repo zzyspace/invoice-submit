@@ -1,13 +1,20 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 
-const sourcePath = new URL("../invoice-form-concept.html", import.meta.url);
 const publicDir = new URL("../public/", import.meta.url);
-const targets = [new URL("../public/index.html", import.meta.url)];
-
-const source = await readFile(sourcePath, "utf8");
+const pages = [
+  {
+    source: new URL("../invoice-form-concept.html", import.meta.url),
+    target: new URL("../public/index.html", import.meta.url),
+  },
+  {
+    source: new URL("../home.html", import.meta.url),
+    target: new URL("../public/home.html", import.meta.url),
+  },
+];
 
 await mkdir(publicDir, { recursive: true });
 
-for (const target of targets) {
-  await writeFile(target, source, "utf8");
+for (const page of pages) {
+  const source = await readFile(page.source, "utf8");
+  await writeFile(page.target, source, "utf8");
 }

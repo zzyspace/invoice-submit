@@ -10,6 +10,7 @@
 ## 项目结构
 
 - `invoice-form-concept.html`：前端单页源码
+- `home.html`：FUZZY 品牌主页源码
 - `public/`：构建后的静态资源
 - `server/`：Express 服务、表单校验、SQLite 写入
 - `deploy/deploy-invoice-submit.sh`：一键部署脚本
@@ -39,6 +40,7 @@ npm run dev
 
 默认监听：
 
+- `http://127.0.0.1:8787/`
 - `http://127.0.0.1:8787/fuzzy`
 - `http://127.0.0.1:8787/fuzzy_qz`
 - `http://127.0.0.1:8787/peanut`

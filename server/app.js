@@ -60,6 +60,10 @@ export function createApp({
     response.status(200).json({ ok: true });
   });
 
+  app.get("/", (_request, response) => {
+    response.sendFile(path.join(staticDir, "home.html"));
+  });
+
   app.get(["/invoice", "/invoice/"], adminAuth, (_request, response) => {
     response.sendFile(path.join(staticDir, "admin.html"));
   });

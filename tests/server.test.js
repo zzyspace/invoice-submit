@@ -105,7 +105,7 @@ test("企业开票时税号留空也能提交成功", async () => {
   });
 });
 
-test("只有门店路径返回开票页面", async () => {
+test("根路径返回品牌主页，只有门店路径返回开票页面", async () => {
   const db = createTestDatabase();
   const tempDir = createTempDirectory();
   const app = createApp({
@@ -122,7 +122,9 @@ test("只有门店路径返回开票页面", async () => {
     }
 
     const rootResponse = await fetch(`${baseUrl}/`);
-    assert.equal(rootResponse.status, 404);
+    assert.equal(rootResponse.status, 200);
+    assert.match(await rootResponse.text(), /FUZZY 浮几/);
+    assert.match(rootResponse.headers.get("content-type"), /text\/html/);
 
     const indexResponse = await fetch(`${baseUrl}/index.html`);
     assert.equal(indexResponse.status, 404);
