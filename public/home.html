@@ -371,6 +371,7 @@
         }
 
         .mobile-menu summary {
+          position: relative;
           width: 42px;
           height: 42px;
           display: grid;
@@ -389,26 +390,30 @@
         .mobile-menu summary::after {
           content: "";
           position: absolute;
+          top: 50%;
+          left: 50%;
           width: 17px;
           height: 1px;
           background: var(--paper);
+          pointer-events: none;
+          transform-origin: center;
           transition: transform 180ms ease;
         }
 
         .mobile-menu summary::before {
-          transform: translateY(-4px);
+          transform: translate(-50%, -5px);
         }
 
         .mobile-menu summary::after {
-          transform: translateY(4px);
+          transform: translate(-50%, 5px);
         }
 
         .mobile-menu[open] summary::before {
-          transform: rotate(45deg);
+          transform: translate(-50%, -50%) rotate(45deg);
         }
 
         .mobile-menu[open] summary::after {
-          transform: rotate(-45deg);
+          transform: translate(-50%, -50%) rotate(-45deg);
         }
 
         .mobile-menu nav {
