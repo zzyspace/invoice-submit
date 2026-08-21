@@ -5,6 +5,7 @@ import test from "node:test";
 
 const root = path.resolve(import.meta.dirname, "..");
 const nginx = fs.readFileSync(path.join(root, "deploy/nginx/invoice-submit.conf"), "utf8");
+const deployScript = fs.readFileSync(path.join(root, "deploy/deploy-invoice-submit.sh"), "utf8");
 const adminHtml = fs.readFileSync(path.join(root, "public/admin.html"), "utf8");
 
 test("nginx protects invoice page and admin API with the shared gateway", () => {
@@ -35,4 +36,10 @@ test("nginx serves the COME OVER homepage at the canonical root", () => {
 test("invoice admin exposes a POST logout action", () => {
   assert.match(adminHtml, /<form class="logout-form" method="post" action="\/admin-logout">/);
   assert.match(adminHtml, /name="returnTo" value="\/invoice"/);
+});
+
+test("invoice deployment leaves the shared Nginx entry to server-infra", () => {
+  assert.doesNotMatch(deployScript, /\/etc\/nginx\/sites-(available|enabled)/);
+  assert.doesNotMatch(deployScript, /\bnginx -t\b/);
+  assert.doesNotMatch(deployScript, /systemctl reload nginx/);
 });

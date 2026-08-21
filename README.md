@@ -15,7 +15,7 @@
 - `server/`：Express 服务、表单校验、SQLite 写入
 - `deploy/deploy-invoice-submit.sh`：一键部署脚本
 - `db/init.sql`：SQLite 初始化 SQL
-- `deploy/nginx/invoice-submit.conf`：Nginx 配置模板
+- `deploy/nginx/invoice-submit.conf`：迁移前兼容快照；生产配置由 `server-infra` 管理
 - `deploy/systemd/invoice-submit.service`：systemd 服务模板
 
 ## 本地开发
@@ -107,9 +107,8 @@ sudo bash deploy/deploy-invoice-submit.sh local
 - `npm install --omit=dev`
 - `npm run build`
 - 安装 `systemd` 服务文件
-- 安装 Nginx 配置并校验
 - 重启 `invoice-submit.service`
-- 校验 `healthz`
+- 校验 Node 和公网 `healthz`
 
 手动方式如下。
 
@@ -128,25 +127,19 @@ systemctl daemon-reload
 systemctl enable --now invoice-submit.service
 ```
 
-7. 安装 Nginx 配置
+7. 发布共享 Nginx 配置
 
-```bash
-cp deploy/nginx/invoice-submit.conf /etc/nginx/sites-available/invoice-submit
-ln -sf /etc/nginx/sites-available/invoice-submit /etc/nginx/sites-enabled/invoice-submit
-rm -f /etc/nginx/sites-enabled/default
-nginx -t
-systemctl enable --now nginx
-systemctl reload nginx
-```
+域名、HTTPS 和所有业务路由统一由独立的 `server-infra` 项目发布。
+`invoice-submit` 部署脚本不会写入或 reload Nginx。
 
 8. 验证
 
 ```bash
 curl http://127.0.0.1:8787/healthz
-curl http://127.0.0.1:8080/healthz
-curl -I http://127.0.0.1:8080/fuzzy
-curl -I http://127.0.0.1:8080/fuzzy_qz
-curl -I http://127.0.0.1:8080/peanut
+curl https://comeover.cn/healthz
+curl -I https://comeover.cn/fuzzy
+curl -I https://comeover.cn/fuzzy_qz
+curl -I https://comeover.cn/peanut
 ```
 
 ## 生产目录
@@ -314,7 +307,7 @@ bash deploy/deploy-invoice-submit.sh root@<server-ip>
 发布后快速验证：
 
 ```bash
-curl http://127.0.0.1:8080/healthz
+curl https://comeover.cn/healthz
 ```
 
 如果脚本直接在服务器上执行：
@@ -349,7 +342,6 @@ find /var/lib/invoice-submit/uploads -type f | tail -n 20
 
 ```bash
 systemctl restart invoice-submit.service
-systemctl reload nginx
 ```
 
 ### 备份数据库
