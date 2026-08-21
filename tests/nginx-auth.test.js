@@ -17,6 +17,16 @@ test("nginx protects invoice page and admin API with the shared gateway", () => 
   }
 });
 
+test("nginx serves the canonical domain over HTTPS and redirects plain HTTP", () => {
+  assert.match(nginx, /listen 80;/);
+  assert.match(nginx, /listen 443 ssl;/);
+  assert.match(nginx, /server_name comeover\.cn;/);
+  assert.match(nginx, /ssl_certificate \/etc\/letsencrypt\/live\/comeover\.cn\/fullchain\.pem;/);
+  assert.match(nginx, /Strict-Transport-Security "max-age=31536000" always;/);
+  assert.match(nginx, /return 308 https:\/\/comeover\.cn\$request_uri;/);
+  assert.match(nginx, /location \^~ \/\.well-known\/acme-challenge\//);
+});
+
 test("invoice admin exposes a POST logout action", () => {
   assert.match(adminHtml, /<form class="logout-form" method="post" action="\/admin-logout">/);
   assert.match(adminHtml, /name="returnTo" value="\/invoice"/);

@@ -13,7 +13,7 @@ NGINX_SITE_NAME="invoice-submit"
 NGINX_AVAILABLE_DIR="/etc/nginx/sites-available"
 NGINX_ENABLED_DIR="/etc/nginx/sites-enabled"
 HEALTHZ_NODE_URL="http://127.0.0.1:8787/healthz"
-HEALTHZ_WEB_URL="http://127.0.0.1:8080/healthz"
+HEALTHZ_WEB_URL="https://comeover.cn/healthz"
 
 SSH_OPTS=(
   -o BatchMode=yes
@@ -95,7 +95,7 @@ run_release() {
   local nginx_enabled_target="${NGINX_ENABLED_DIR}/${NGINX_SITE_NAME}"
 
   echo "[deploy] Ensuring runtime directories exist"
-  install -d -m 755 "${DATA_ROOT}/data" "${DATA_ROOT}/uploads"
+  install -d -m 755 "${DATA_ROOT}/data" "${DATA_ROOT}/uploads" /var/www/letsencrypt
   install -d -m 755 "${NGINX_AVAILABLE_DIR}" "${NGINX_ENABLED_DIR}"
 
   echo "[deploy] Pulling latest code from origin/main"
