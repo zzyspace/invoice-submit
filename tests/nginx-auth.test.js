@@ -27,7 +27,7 @@ test("nginx serves the canonical domain over HTTPS and redirects plain HTTP", ()
   assert.match(nginx, /location \^~ \/\.well-known\/acme-challenge\//);
 });
 
-test("nginx serves the FUZZY homepage at the canonical root", () => {
+test("nginx serves the COME OVER homepage at the canonical root", () => {
   assert.match(nginx, /location = \/ \{\s*try_files \/home\.html =404;\s*\}/);
   assert.match(nginx, /location = \/index\.html \{\s*return 404;\s*\}/);
 });

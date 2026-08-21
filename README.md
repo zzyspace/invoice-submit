@@ -10,7 +10,7 @@
 ## 项目结构
 
 - `invoice-form-concept.html`：前端单页源码
-- `home.html`：FUZZY 品牌主页源码
+- `home.html`：COME OVER 品牌主页源码
 - `public/`：构建后的静态资源
 - `server/`：Express 服务、表单校验、SQLite 写入
 - `deploy/deploy-invoice-submit.sh`：一键部署脚本

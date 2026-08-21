@@ -124,9 +124,15 @@ test("根路径返回品牌主页，只有门店路径返回开票页面", async
     const rootResponse = await fetch(`${baseUrl}/`);
     assert.equal(rootResponse.status, 200);
     const rootHtml = await rootResponse.text();
-    assert.match(rootHtml, /FUZZY 浮几/);
+    assert.match(rootHtml, /<title>COME OVER<\/title>/);
+    assert.match(rootHtml, /\/assets\/come-over-hero\.png/);
     assert.match(rootHtml, /href="https:\/\/beian\.miit\.gov\.cn\/"[^>]*>闽ICP备2026032446号-1<\/a>/);
     assert.match(rootResponse.headers.get("content-type"), /text\/html/);
+
+    const heroResponse = await fetch(`${baseUrl}/assets/come-over-hero.png`);
+    assert.equal(heroResponse.status, 200);
+    assert.match(heroResponse.headers.get("content-type"), /image\/png/);
+    assert.ok((await heroResponse.arrayBuffer()).byteLength > 0);
 
     const indexResponse = await fetch(`${baseUrl}/index.html`);
     assert.equal(indexResponse.status, 404);
