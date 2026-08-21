@@ -96,6 +96,11 @@
         color: rgba(233, 225, 214, 0.88);
       }
 
+      .nav a {
+        font-size: 14px;
+        font-weight: 200;
+      }
+
       .nav a::after {
         content: "";
         position: absolute;
@@ -124,8 +129,9 @@
       }
 
       .brand-word {
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
         font-size: 20px;
-        font-weight: 400;
+        font-weight: 500;
         line-height: 1;
         letter-spacing: 0.06em;
       }
@@ -172,7 +178,7 @@
         margin: 0;
         color: rgba(226, 216, 202, 0.9);
         font-family: var(--serif);
-        font-size: clamp(52px, 5.05vw, 82px);
+        font-size: clamp(44px, 5.05vw, 82px);
         font-weight: 400;
         line-height: 1.08;
         letter-spacing: -0.025em;
@@ -314,6 +320,8 @@
       .footer {
         display: flex;
         justify-content: flex-end;
+        align-items: center;
+        flex-wrap: wrap;
         gap: 24px;
         padding: 30px clamp(28px, 5.3vw, 84px);
         border-top: 1px solid rgba(226, 216, 202, 0.12);
@@ -322,6 +330,16 @@
         font-size: 11px;
         letter-spacing: 0.12em;
         text-transform: uppercase;
+      }
+
+      .footer a {
+        text-decoration: none;
+        transition: color 180ms ease;
+      }
+
+      .footer a:hover,
+      .footer a:focus-visible {
+        color: var(--paper);
       }
 
       @media (max-width: 760px) {
@@ -414,7 +432,7 @@
 
         .hero-copy {
           top: 48%;
-          width: calc(100% - 48px);
+          width: calc(100% - 80px);
           transform: translate(-50%, -30%);
         }
 
@@ -424,8 +442,8 @@
         }
 
         .side-note {
-          top: auto;
-          bottom: 95px;
+          top: 52%;
+          bottom: auto;
           font-size: 9px;
         }
 
@@ -459,6 +477,7 @@
 
         .footer {
           flex-direction: column;
+          align-items: flex-end;
         }
       }
 
@@ -537,7 +556,7 @@
         </section>
 
         <section id="location" class="story-section">
-          <p class="section-kicker">Visit fuzzy</p>
+          <p class="section-kicker">Visit</p>
           <div class="section-copy">
             <h2 id="reservation">Come over. Stay awhile.</h2>
             <div class="location-grid">
@@ -557,6 +576,7 @@
 
     <footer class="footer">
       <span>Tea · Wine · Korean food</span>
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">闽ICP备2026032446号-1</a>
     </footer>
 
     <script>

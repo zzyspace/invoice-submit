@@ -123,7 +123,9 @@ test("根路径返回品牌主页，只有门店路径返回开票页面", async
 
     const rootResponse = await fetch(`${baseUrl}/`);
     assert.equal(rootResponse.status, 200);
-    assert.match(await rootResponse.text(), /FUZZY 浮几/);
+    const rootHtml = await rootResponse.text();
+    assert.match(rootHtml, /FUZZY 浮几/);
+    assert.match(rootHtml, /href="https:\/\/beian\.miit\.gov\.cn\/"[^>]*>闽ICP备2026032446号-1<\/a>/);
     assert.match(rootResponse.headers.get("content-type"), /text\/html/);
 
     const indexResponse = await fetch(`${baseUrl}/index.html`);
