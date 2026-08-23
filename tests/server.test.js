@@ -440,7 +440,10 @@ test("管理员页面入口改为 /invoice", async () => {
       headers: createAdminAuthHeaders(),
     });
     assert.equal(invoiceResponse.status, 200);
-    assert.match(await invoiceResponse.text(), /发票信息后台/);
+    const invoiceHtml = await invoiceResponse.text();
+    assert.match(invoiceHtml, /发票信息后台/);
+    assert.match(invoiceHtml, /<nav class="topbar" aria-label="发票中心导航">/);
+    assert.match(invoiceHtml, /id="theme-icon" aria-hidden="true">🌙<\/span>/);
 
     const legacyAdminResponse = await fetch(`${baseUrl}/admin`, {
       headers: createAdminAuthHeaders(),

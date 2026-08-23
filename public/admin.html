@@ -3,8 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="light" />
+    <meta name="color-scheme" content="light dark" />
     <title>发票信息后台</title>
+    <script>
+      (() => {
+        let savedTheme = null;
+        try {
+          savedTheme = window.localStorage.getItem("invoice-admin-theme");
+        } catch {
+          // Storage may be unavailable in privacy-restricted browser contexts.
+        }
+        const theme = savedTheme === "light" || savedTheme === "dark"
+          ? savedTheme
+          : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
     <style>
       :root {
         --bg: #f2f2f7;
@@ -19,10 +34,44 @@
         --brand-soft: rgba(0, 122, 255, 0.12);
         --accent: #007aff;
         --danger: #ff3b30;
+        --surface-muted: rgba(255, 255, 255, 0.72);
+        --surface-input: rgba(255, 255, 255, 0.9);
+        --surface-hover: rgba(255, 255, 255, 0.56);
+        --table-head: rgba(255, 255, 255, 0.7);
+        --preview-head: rgba(255, 255, 255, 0.76);
+        --preview-body: rgba(242, 242, 247, 0.82);
+        --modal-backdrop: rgba(28, 28, 30, 0.38);
+        --page-glow-start: rgba(0, 122, 255, 0.16);
+        --page-glow-end: rgba(90, 200, 250, 0.18);
         --shadow: 0 24px 60px rgba(28, 28, 30, 0.1);
         --radius-xl: 28px;
         --radius-lg: 18px;
         --radius-md: 12px;
+      }
+
+      :root[data-theme="dark"] {
+        --bg: #0d1117;
+        --bg-accent: #151b25;
+        --surface: rgba(27, 34, 45, 0.88);
+        --surface-strong: #202938;
+        --line: rgba(235, 242, 255, 0.14);
+        --line-strong: rgba(235, 242, 255, 0.28);
+        --ink: #f2f5f9;
+        --ink-soft: #aab4c3;
+        --brand: #5aa7ff;
+        --brand-soft: rgba(90, 167, 255, 0.18);
+        --accent: #5aa7ff;
+        --danger: #ff6961;
+        --surface-muted: rgba(41, 51, 66, 0.82);
+        --surface-input: rgba(17, 23, 32, 0.9);
+        --surface-hover: rgba(73, 91, 116, 0.32);
+        --table-head: rgba(41, 51, 66, 0.74);
+        --preview-head: rgba(32, 41, 56, 0.94);
+        --preview-body: rgba(14, 19, 27, 0.92);
+        --modal-backdrop: rgba(0, 0, 0, 0.68);
+        --page-glow-start: rgba(32, 110, 210, 0.22);
+        --page-glow-end: rgba(50, 170, 210, 0.14);
+        --shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
       }
 
       * {
@@ -35,8 +84,8 @@
         font-family: "SF Pro Text", "PingFang SC", "Noto Sans SC", sans-serif;
         color: var(--ink);
         background:
-          radial-gradient(circle at top left, rgba(0, 122, 255, 0.16), transparent 28%),
-          radial-gradient(circle at top right, rgba(90, 200, 250, 0.18), transparent 26%),
+          radial-gradient(circle at top left, var(--page-glow-start), transparent 28%),
+          radial-gradient(circle at top right, var(--page-glow-end), transparent 26%),
           linear-gradient(180deg, var(--bg) 0%, var(--bg-accent) 100%);
       }
 
@@ -47,32 +96,26 @@
       .page {
         width: min(1240px, calc(100vw - 32px));
         margin: 0 auto;
-        padding: 32px 0 48px;
+        padding: 14px 0 48px;
       }
 
-      .hero {
-        display: grid;
-        gap: 14px;
-        margin-bottom: 20px;
-      }
-
-      .eyebrow {
-        display: inline-flex;
-        width: fit-content;
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.72);
-        border: 1px solid rgba(60, 60, 67, 0.12);
-        color: var(--ink-soft);
-        font-size: 12px;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-      }
+      .topbar { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); box-shadow: 0 12px 32px rgba(30, 70, 120, 0.08); backdrop-filter: blur(20px); }
+      .brand-lockup { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font-size: 15px; font-weight: 700; text-decoration: none; }
+      .brand-lockup svg { width: 22px; height: 22px; color: var(--brand); }
+      .topbar-actions { display: flex; align-items: center; gap: 6px; }
+      .logout-form { margin: 0; }
+      .topbar-actions button { min-height: 36px; border-radius: 10px; }
+      .theme-toggle { display: inline-flex; align-items: center; justify-content: center; width: 36px; min-width: 36px; padding: 0; flex: 0 0 36px; border-color: transparent; background: var(--surface-muted); }
+      .theme-icon { display: grid; place-items: center; width: 24px; height: 24px; font-family: "Apple Color Emoji", "Segoe UI Emoji", sans-serif; font-size: 20px; line-height: 1; }
+      .logout-button { display: inline-flex; align-items: center; gap: 6px; padding: 0 9px; border-color: transparent; background: var(--surface-muted); font-size: 14px; white-space: nowrap; }
+      .logout-button svg { width: 18px; height: 18px; }
+      .hero { display: grid; align-content: center; min-height: 145px; margin: 0 -14px 0; padding: 0 48px; overflow: hidden; }
+      .hero-copy { display: grid; justify-items: start; }
 
       h1 {
-        margin: 0;
-        font-size: clamp(30px, 4vw, 48px);
-        line-height: 1;
+        margin: 0 0 10px;
+        font-size: clamp(34px, 5vw, 44px);
+        line-height: 1.08;
         letter-spacing: -0.05em;
       }
 
@@ -81,11 +124,7 @@
         max-width: 720px;
         color: var(--ink-soft);
         font-size: 15px;
-        line-height: 1.7;
-      }
-
-      .logout-form {
-        width: fit-content;
+        line-height: 1.55;
       }
 
       .panel {
@@ -133,8 +172,25 @@
 
       .field input,
       .field select {
-        background: rgba(255, 255, 255, 0.9);
+        background: var(--surface-input);
         color: var(--ink);
+      }
+
+      .controls-grid .field select {
+        height: 46px;
+        min-height: 46px;
+        padding-right: 42px;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image:
+          linear-gradient(45deg, transparent 50%, var(--ink-soft) 50%),
+          linear-gradient(135deg, var(--ink-soft) 50%, transparent 50%);
+        background-position:
+          calc(100% - 18px) 50%,
+          calc(100% - 13px) 50%;
+        background-repeat: no-repeat;
+        background-size: 5px 5px;
+        line-height: normal;
       }
 
       .field input:focus,
@@ -222,7 +278,7 @@
       }
 
       thead {
-        background: rgba(255, 255, 255, 0.7);
+        background: var(--table-head);
       }
 
       th,
@@ -258,7 +314,7 @@
       }
 
       tbody tr:hover {
-        background: rgba(255, 255, 255, 0.56);
+        background: var(--surface-hover);
       }
 
       .mono {
@@ -351,7 +407,7 @@
         display: grid;
         place-items: center;
         padding: 20px;
-        background: rgba(28, 28, 30, 0.38);
+        background: var(--modal-backdrop);
         backdrop-filter: blur(12px);
       }
 
@@ -374,7 +430,7 @@
         gap: 16px;
         padding: 20px 22px;
         border-bottom: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.76);
+        background: var(--preview-head);
       }
 
       .preview-header h2 {
@@ -396,7 +452,7 @@
         padding: 20px;
         display: grid;
         place-items: center;
-        background: rgba(242, 242, 247, 0.82);
+        background: var(--preview-body);
       }
 
       .preview-status {
@@ -442,6 +498,11 @@
         background: rgba(255, 59, 48, 0.14);
       }
 
+      :root[data-theme="dark"] .tag-store-fuzzy { background: rgba(87, 202, 123, 0.18); border-color: rgba(87, 202, 123, 0.28); color: #7ddd9a; }
+      :root[data-theme="dark"] .tag-store-peanut { background: rgba(90, 167, 255, 0.18); border-color: rgba(90, 167, 255, 0.28); color: #8fc0ff; }
+      :root[data-theme="dark"] .tag-store-fuzzy-qz { background: rgba(202, 137, 238, 0.18); border-color: rgba(202, 137, 238, 0.28); color: #d6a3f0; }
+      :root[data-theme="dark"] .tag-type-personal { background: rgba(255, 179, 64, 0.18); color: #ffc268; }
+
       .empty {
         padding: 28px 18px;
         color: var(--ink-soft);
@@ -462,8 +523,8 @@
 
       @media (max-width: 980px) {
         .page {
-          width: min(100vw - 20px, 1240px);
-          padding-top: 20px;
+          width: min(100vw - 28px, 1240px);
+          padding-top: 8px;
         }
 
         .controls-grid {
@@ -472,6 +533,11 @@
       }
 
       @media (max-width: 640px) {
+        .page { width: min(100vw - 20px, 1240px); }
+        .hero { min-height: 170px; margin: -10px -10px 0; padding: 0 23px; }
+        h1 { margin-bottom: 14px; font-size: clamp(29px, 8.5vw, 38px); }
+        .hero p { font-size: 13px; line-height: 1.75; }
+
         .controls {
           padding: 18px;
         }
@@ -517,15 +583,34 @@
   </head>
   <body>
     <main class="page">
-      <section class="hero">
-        <span class="eyebrow">Invoice Submit Admin</span>
-        <h1>发票信息后台</h1>
-        <p>查看最新开票提交记录，支持按门店和关键词筛选，并可直接预览用户上传的付款凭证。</p>
-        <form class="logout-form" method="post" action="/logout">
-          <input type="hidden" name="returnTo" value="/invoice" />
-          <button type="submit">退出登录</button>
-        </form>
-      </section>
+      <nav class="topbar" aria-label="发票中心导航">
+        <a class="brand-lockup" href="/invoice" aria-label="返回发票中心">
+          <svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="3.5" width="19" height="25" rx="3" />
+            <path d="M11 10h9M11 15h9M11 20h5" />
+            <circle cx="23.5" cy="23.5" r="4" fill="var(--surface)" />
+            <path d="M23.5 21.5v4M21.5 23.5h4" />
+          </svg>
+          <span>发票中心</span>
+        </a>
+        <div class="topbar-actions">
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-label="切换到深色模式" aria-pressed="false"><span class="theme-icon" id="theme-icon" aria-hidden="true">🌙</span></button>
+          <form class="logout-form" method="post" action="/logout">
+            <input type="hidden" name="returnTo" value="/invoice" />
+            <button class="logout-button" type="submit">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5M15 8l4 4-4 4M19 12H9" /></svg>
+              <span>退出登录</span>
+            </button>
+          </form>
+        </div>
+      </nav>
+
+      <header class="hero">
+        <div class="hero-copy">
+          <h1>发票信息后台</h1>
+          <p>查看最新开票提交记录，支持按门店和关键词筛选，并可直接预览用户上传的付款凭证。</p>
+        </div>
+      </header>
 
       <section class="panel controls">
         <form id="filter-form">
@@ -636,6 +721,7 @@
     </div>
 
     <script>
+      const THEME_STORAGE_KEY = "invoice-admin-theme";
       const form = document.getElementById("filter-form");
       const refreshButton = document.getElementById("refresh-button");
       const prevButton = document.getElementById("prev-button");
@@ -652,6 +738,29 @@
       const attachmentPreviewImage = document.getElementById("attachment-preview-image");
       const attachmentPreviewFrame = document.getElementById("attachment-preview-frame");
       const attachmentPreviewClose = document.getElementById("attachment-preview-close");
+      const themeToggle = document.getElementById("theme-toggle");
+      const themeIcon = document.getElementById("theme-icon");
+
+      function readSavedTheme() {
+        try {
+          const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+          return savedTheme === "light" || savedTheme === "dark" ? savedTheme : null;
+        } catch {
+          return null;
+        }
+      }
+
+      function applyTheme(theme, persist = false) {
+        const normalizedTheme = theme === "dark" ? "dark" : "light";
+        document.documentElement.dataset.theme = normalizedTheme;
+        document.documentElement.style.colorScheme = normalizedTheme;
+        themeIcon.textContent = normalizedTheme === "dark" ? "☀️" : "🌙";
+        themeToggle.setAttribute("aria-label", normalizedTheme === "dark" ? "切换到浅色模式" : "切换到深色模式");
+        themeToggle.setAttribute("aria-pressed", String(normalizedTheme === "dark"));
+        if (persist) {
+          try { window.localStorage.setItem(THEME_STORAGE_KEY, normalizedTheme); } catch { /* Ignore. */ }
+        }
+      }
 
       const state = {
         search: "",
@@ -1113,6 +1222,11 @@
           closeAttachmentPreview();
         }
       });
+
+      const systemThemePreference = window.matchMedia("(prefers-color-scheme: dark)");
+      applyTheme(document.documentElement.dataset.theme || (systemThemePreference.matches ? "dark" : "light"));
+      themeToggle.addEventListener("click", () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark", true));
+      systemThemePreference.addEventListener("change", (event) => { if (!readSavedTheme()) applyTheme(event.matches ? "dark" : "light"); });
 
       loadRecords();
     </script>

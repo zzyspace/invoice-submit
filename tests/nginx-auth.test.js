@@ -36,6 +36,15 @@ test("nginx serves the COME OVER homepage at the canonical root", () => {
 test("invoice admin exposes a POST logout action", () => {
   assert.match(adminHtml, /<form class="logout-form" method="post" action="\/logout">/);
   assert.match(adminHtml, /name="returnTo" value="\/invoice"/);
+  assert.match(adminHtml, /<nav class="topbar" aria-label="发票中心导航">/);
+  assert.match(adminHtml, /<span>发票中心<\/span>/);
+  assert.match(adminHtml, /id="theme-icon" aria-hidden="true">🌙<\/span>/);
+  assert.match(adminHtml, /themeIcon\.textContent = normalizedTheme === "dark" \? "☀️" : "🌙"/);
+  assert.match(adminHtml, /window\.localStorage\.setItem\(THEME_STORAGE_KEY, normalizedTheme\)/);
+  assert.match(adminHtml, /\.topbar \{[^}]*min-height: 52px;[^}]*border-radius: 13px;/s);
+  assert.match(adminHtml, /\.hero \{[^}]*align-content: center;[^}]*min-height: 145px;[^}]*margin: 0 -14px 0;[^}]*padding: 0 48px;/s);
+  assert.match(adminHtml, /\.controls-grid \.field select \{[^}]*height: 46px;[^}]*min-height: 46px;[^}]*-webkit-appearance: none;/s);
+  assert.match(adminHtml, /background-position:\s*calc\(100% - 18px\) 50%,\s*calc\(100% - 13px\) 50%;/);
 });
 
 test("invoice deployment leaves the shared Nginx entry to server-infra", () => {
