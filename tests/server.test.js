@@ -86,7 +86,7 @@ test("企业开票时税号留空也能提交成功", async () => {
   });
 
   await withServer(app, async (baseUrl) => {
-    const response = await fetch(`${baseUrl}/api/submissions`, {
+    const response = await fetch(`${baseUrl}/invoice/api/submissions`, {
       method: "POST",
       body: createValidFormData(),
     });
@@ -115,11 +115,15 @@ test("根路径返回品牌主页，只有门店路径返回开票页面", async
   });
 
   await withServer(app, async (baseUrl) => {
-    for (const route of ["/fuzzy", "/fuzzy_qz", "/peanut"]) {
+    for (const route of ["/invoice/fuzzy", "/invoice/fuzzy-qz", "/invoice/peanut"]) {
       const validResponse = await fetch(`${baseUrl}${route}`);
       assert.equal(validResponse.status, 200);
       assert.match(await validResponse.text(), /name="storeKey"/);
     }
+
+    const legacyStoreResponse = await fetch(`${baseUrl}/fuzzy`);
+    assert.equal(legacyStoreResponse.status, 200);
+    assert.match(await legacyStoreResponse.text(), /name="storeKey"/);
 
     const rootResponse = await fetch(`${baseUrl}/`);
     assert.equal(rootResponse.status, 200);
@@ -155,7 +159,7 @@ test("缺少邮箱时提交失败", async () => {
   formData.set("email", "");
 
   await withServer(app, async (baseUrl) => {
-    const response = await fetch(`${baseUrl}/api/submissions`, {
+    const response = await fetch(`${baseUrl}/invoice/api/submissions`, {
       method: "POST",
       body: formData,
     });
@@ -179,7 +183,7 @@ test("门店标识无效时提交失败", async () => {
   formData.set("storeKey", "store-alpha");
 
   await withServer(app, async (baseUrl) => {
-    const response = await fetch(`${baseUrl}/api/submissions`, {
+    const response = await fetch(`${baseUrl}/invoice/api/submissions`, {
       method: "POST",
       body: formData,
     });
@@ -208,7 +212,7 @@ test("附件超过 20MB 时提交失败", async () => {
   );
 
   await withServer(app, async (baseUrl) => {
-    const response = await fetch(`${baseUrl}/api/submissions`, {
+    const response = await fetch(`${baseUrl}/invoice/api/submissions`, {
       method: "POST",
       body: formData,
     });
@@ -229,7 +233,7 @@ test("healthz 返回 ok", async () => {
   });
 
   await withServer(app, async (baseUrl) => {
-    const response = await fetch(`${baseUrl}/healthz`);
+    const response = await fetch(`${baseUrl}/health/invoice`);
     assert.equal(response.status, 200);
     assert.deepEqual(await response.json(), { ok: true });
   });
@@ -375,7 +379,7 @@ test("上传类型不是 PNG/JPG/PDF 时提交失败", async () => {
   formData.set("attachment", new File([new Uint8Array([1, 2, 3])], "bad.gif", { type: "image/gif" }));
 
   await withServer(app, async (baseUrl) => {
-    const response = await fetch(`${baseUrl}/api/submissions`, {
+    const response = await fetch(`${baseUrl}/invoice/api/submissions`, {
       method: "POST",
       body: formData,
     });
@@ -397,7 +401,7 @@ test("管理员接口未配置账号密码时返回 503", async () => {
   });
 
   await withServer(app, async (baseUrl) => {
-    const response = await fetch(`${baseUrl}/api/admin/submissions`);
+    const response = await fetch(`${baseUrl}/invoice/api/admin/submissions`);
     assert.equal(response.status, 503);
     const payload = await response.json();
     assert.match(payload.error.message, /尚未配置账号密码/);
@@ -415,7 +419,7 @@ test("管理员接口需要 Basic Auth", async () => {
   });
 
   await withServer(app, async (baseUrl) => {
-    const response = await fetch(`${baseUrl}/api/admin/submissions`);
+    const response = await fetch(`${baseUrl}/invoice/api/admin/submissions`);
     assert.equal(response.status, 401);
     assert.equal(response.headers.get("www-authenticate"), 'Basic realm="Invoice Submit Admin", charset="UTF-8"');
   });
@@ -502,7 +506,7 @@ test("管理员可以分页查看提交记录", async () => {
 
   await withServer(app, async (baseUrl) => {
     const response = await fetch(
-      `${baseUrl}/api/admin/submissions?storeKey=peanut&search=%E7%8E%8B&limit=20&offset=0`,
+      `${baseUrl}/invoice/api/admin/submissions?storeKey=peanut&search=%E7%8E%8B&limit=20&offset=0`,
       {
         headers: createAdminAuthHeaders(),
       }
@@ -553,7 +557,7 @@ test("管理员可以查看提交附件", async () => {
   });
 
   await withServer(app, async (baseUrl) => {
-    const response = await fetch(`${baseUrl}/api/admin/submissions/submission-preview/attachment`, {
+    const response = await fetch(`${baseUrl}/invoice/api/admin/submissions/submission-preview/attachment`, {
       headers: createAdminAuthHeaders(),
     });
 
@@ -600,7 +604,7 @@ test("管理员可以删除提交记录并清理附件", async () => {
   assert.equal(fs.existsSync(created.attachmentPath), true);
 
   await withServer(app, async (baseUrl) => {
-    const response = await fetch(`${baseUrl}/api/admin/submissions/submission-delete`, {
+    const response = await fetch(`${baseUrl}/invoice/api/admin/submissions/submission-delete`, {
       method: "DELETE",
       headers: createAdminAuthHeaders(),
     });

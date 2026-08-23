@@ -49,7 +49,7 @@ function sendAdminError(request, response, statusCode, message, extraHeaders = {
   setNoStore(response);
   response.set(extraHeaders);
 
-  if (request.path.startsWith("/api/")) {
+  if (request.path.includes("/api/")) {
     response.status(statusCode).json({
       success: false,
       error: {

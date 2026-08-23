@@ -34,7 +34,7 @@ test("nginx serves the COME OVER homepage at the canonical root", () => {
 });
 
 test("invoice admin exposes a POST logout action", () => {
-  assert.match(adminHtml, /<form class="logout-form" method="post" action="\/admin-logout">/);
+  assert.match(adminHtml, /<form class="logout-form" method="post" action="\/logout">/);
   assert.match(adminHtml, /name="returnTo" value="\/invoice"/);
 });
 

@@ -521,7 +521,7 @@
         <span class="eyebrow">Invoice Submit Admin</span>
         <h1>发票信息后台</h1>
         <p>查看最新开票提交记录，支持按门店和关键词筛选，并可直接预览用户上传的付款凭证。</p>
-        <form class="logout-form" method="post" action="/admin-logout">
+        <form class="logout-form" method="post" action="/logout">
           <input type="hidden" name="returnTo" value="/invoice" />
           <button type="submit">退出登录</button>
         </form>
@@ -905,7 +905,7 @@
           const attachmentCell = document.createElement("td");
           const attachmentLink = document.createElement("a");
           attachmentLink.className = "attachment-link";
-          attachmentLink.href = `/api/admin/submissions/${encodeURIComponent(item.id)}/attachment`;
+          attachmentLink.href = `/invoice/api/admin/submissions/${encodeURIComponent(item.id)}/attachment`;
           attachmentLink.dataset.action = "preview-attachment";
           attachmentLink.dataset.contentType = item.attachment_content_type || "";
           attachmentLink.dataset.attachmentName = item.attachment_name || "查看附件";
@@ -966,7 +966,7 @@
         });
 
         try {
-          const response = await fetch(`/api/admin/submissions?${query.toString()}`, {
+          const response = await fetch(`/invoice/api/admin/submissions?${query.toString()}`, {
             headers: {
               Accept: "application/json",
             },
@@ -1022,7 +1022,7 @@
         setStatus(`正在删除 ${item.invoice_title || submissionId} ...`);
 
         try {
-          const response = await fetch(`/api/admin/submissions/${encodeURIComponent(submissionId)}`, {
+          const response = await fetch(`/invoice/api/admin/submissions/${encodeURIComponent(submissionId)}`, {
             method: "DELETE",
             headers: {
               Accept: "application/json",

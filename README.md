@@ -41,9 +41,9 @@ npm run dev
 默认监听：
 
 - `http://127.0.0.1:8787/`
-- `http://127.0.0.1:8787/fuzzy`
-- `http://127.0.0.1:8787/fuzzy_qz`
-- `http://127.0.0.1:8787/peanut`
+- `http://127.0.0.1:8787/invoice/fuzzy`
+- `http://127.0.0.1:8787/invoice/fuzzy-qz`
+- `http://127.0.0.1:8787/invoice/peanut`
 
 如需本地查看后台，再额外设置管理员账号密码：
 
@@ -65,9 +65,9 @@ export INVOICE_ADMIN_PASSWORD='change-this-password'
 
 服务器当前方案：
 
-- Web 入口：`http://<server-ip>:8080/fuzzy`
-- Web 入口：`http://<server-ip>:8080/fuzzy_qz`
-- Web 入口：`http://<server-ip>:8080/peanut`
+- Web 入口：`http://<server-ip>:8080/invoice/fuzzy`
+- Web 入口：`http://<server-ip>:8080/invoice/fuzzy-qz`
+- Web 入口：`http://<server-ip>:8080/invoice/peanut`
 - Nginx 对外监听：`8080`
 - Node 服务监听：`127.0.0.1:8787`
 
@@ -135,11 +135,11 @@ systemctl enable --now invoice-submit.service
 8. 验证
 
 ```bash
-curl http://127.0.0.1:8787/healthz
-curl https://comeover.cn/healthz
-curl -I https://comeover.cn/fuzzy
-curl -I https://comeover.cn/fuzzy_qz
-curl -I https://comeover.cn/peanut
+curl http://127.0.0.1:8787/health/invoice
+curl https://comeover.cn/health/invoice
+curl -I https://comeover.cn/invoice/fuzzy
+curl -I https://comeover.cn/invoice/fuzzy-qz
+curl -I https://comeover.cn/invoice/peanut
 ```
 
 ## 生产目录
@@ -228,8 +228,8 @@ mkdir -p /var/lib/invoice-submit/uploads
 后台是一个最小只读页面，默认需要 HTTP Basic Auth：
 
 - 页面：`/invoice`
-- 列表接口：`/api/admin/submissions`
-- 附件查看：`/api/admin/submissions/:id/attachment`
+- 列表接口：`/invoice/api/admin/submissions`
+- 附件查看：`/invoice/api/admin/submissions/:id/attachment`
 
 支持能力：
 
@@ -248,9 +248,9 @@ mkdir -p /var/lib/invoice-submit/uploads
 
 - 监听 `8080`
 - 静态目录：`/opt/invoice-submit/current/public`
-- 仅开放 `/fuzzy`、`/fuzzy_qz`、`/peanut` 三个开票页面路径
+- 仅开放 `/invoice/fuzzy`、`/invoice/fuzzy-qz`、`/invoice/peanut` 三个开票页面路径
 - `/invoice` 反代到 `127.0.0.1:8787/invoice`
-- `/api/` 反代到 `127.0.0.1:8787`
+- `/invoice/api/` 反代到 `127.0.0.1:8787`
 - `client_max_body_size 20M`
 
 ## systemd
@@ -307,7 +307,7 @@ bash deploy/deploy-invoice-submit.sh root@<server-ip>
 发布后快速验证：
 
 ```bash
-curl https://comeover.cn/healthz
+curl https://comeover.cn/health/invoice
 ```
 
 如果脚本直接在服务器上执行：
@@ -375,7 +375,7 @@ ss -lntp | grep 8080
 说明 Nginx 没连上 Node，检查：
 
 ```bash
-curl http://127.0.0.1:8787/healthz
+curl http://127.0.0.1:8787/health/invoice
 systemctl status --no-pager invoice-submit.service
 journalctl -u invoice-submit.service -n 100 --no-pager
 ```

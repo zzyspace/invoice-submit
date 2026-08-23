@@ -9,8 +9,8 @@ APP_DIR="/opt/invoice-submit/current"
 DATA_ROOT="/var/lib/invoice-submit"
 SERVICE_NAME="invoice-submit.service"
 SYSTEMD_UNIT_DIR="/etc/systemd/system"
-HEALTHZ_NODE_URL="http://127.0.0.1:8787/healthz"
-HEALTHZ_WEB_URL="https://comeover.cn/healthz"
+HEALTHZ_NODE_URL="http://127.0.0.1:8787/health/invoice"
+HEALTHZ_WEB_URL="https://comeover.cn/health/invoice"
 
 SSH_OPTS=(
   -o BatchMode=yes

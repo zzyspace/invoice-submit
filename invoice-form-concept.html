@@ -845,9 +845,9 @@
         ]);
 
         const pathToStoreKey = new Map([
-          ["/fuzzy", "fuzzy"],
-          ["/fuzzy_qz", "fuzzy_qz"],
-          ["/peanut", "peanut"],
+          ["/invoice/fuzzy", "fuzzy"],
+          ["/invoice/fuzzy-qz", "fuzzy_qz"],
+          ["/invoice/peanut", "peanut"],
         ]);
         const maxAttachmentBytes = 20 * 1024 * 1024;
         let attachmentPreviewUrl = "";
@@ -1068,7 +1068,7 @@
           });
 
           try {
-            const response = await fetch("/api/submissions", {
+            const response = await fetch("/invoice/api/submissions", {
               method: "POST",
               body: new FormData(form),
             });

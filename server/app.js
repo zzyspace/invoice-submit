@@ -25,7 +25,16 @@ import {
   createSubmissionRecord,
 } from "./submissions.js";
 
-const storeRoutes = Array.from(ALLOWED_STORE_KEYS, (storeKey) => `/${storeKey}`);
+const STORE_ROUTE_SLUGS = new Map([
+  ["fuzzy", "fuzzy"],
+  ["fuzzy_qz", "fuzzy-qz"],
+  ["peanut", "peanut"],
+]);
+const storeRoutes = Array.from(
+  ALLOWED_STORE_KEYS,
+  (storeKey) => `/invoice/${STORE_ROUTE_SLUGS.get(storeKey)}`
+);
+const legacyStoreRoutes = Array.from(ALLOWED_STORE_KEYS, (storeKey) => `/${storeKey}`);
 
 function sendNotFound(_request, response) {
   response.status(404).type("text/plain").send("Not found");
@@ -56,7 +65,7 @@ export function createApp({
   app.get("/admin.html", sendNotFound);
   app.use(express.static(staticDir, { index: false }));
 
-  app.get("/healthz", (_request, response) => {
+  app.get(["/health/invoice", "/healthz"], (_request, response) => {
     response.status(200).json({ ok: true });
   });
 
@@ -68,7 +77,7 @@ export function createApp({
     response.sendFile(path.join(staticDir, "admin.html"));
   });
 
-  app.get("/api/admin/submissions", adminAuth, (request, response, next) => {
+  app.get(["/invoice/api/admin/submissions", "/api/admin/submissions"], adminAuth, (request, response, next) => {
     try {
       const result = listSubmissionsForAdmin(db, request.query);
       response.status(200).json({
@@ -80,51 +89,59 @@ export function createApp({
     }
   });
 
-  app.get("/api/admin/submissions/:id/attachment", adminAuth, (request, response) => {
-    const attachment = getSubmissionAttachment(db, request.params.id);
+  app.get(
+    ["/invoice/api/admin/submissions/:id/attachment", "/api/admin/submissions/:id/attachment"],
+    adminAuth,
+    (request, response) => {
+      const attachment = getSubmissionAttachment(db, request.params.id);
 
-    if (!attachment) {
-      response.status(404).json({
-        success: false,
-        error: {
-          message: "附件不存在或已被删除。",
-        },
-      });
-      return;
-    }
-
-    response.type(attachment.attachment_content_type);
-    response.set(
-      "Content-Disposition",
-      `inline; filename*=UTF-8''${encodeURIComponent(attachment.attachment_name)}`
-    );
-    response.sendFile(attachment.attachment_path);
-  });
-
-  app.delete("/api/admin/submissions/:id", adminAuth, async (request, response, next) => {
-    try {
-      const deleted = await deleteSubmissionForAdmin(db, request.params.id);
-
-      if (!deleted) {
+      if (!attachment) {
         response.status(404).json({
           success: false,
           error: {
-            message: "提交记录不存在或已被删除。",
+            message: "附件不存在或已被删除。",
           },
         });
         return;
       }
 
-      response.status(200).json({
-        success: true,
-        id: deleted.id,
-      });
-    } catch (error) {
-      next(error);
+      response.type(attachment.attachment_content_type);
+      response.set(
+        "Content-Disposition",
+        `inline; filename*=UTF-8''${encodeURIComponent(attachment.attachment_name)}`
+      );
+      response.sendFile(attachment.attachment_path);
     }
-  });
+  );
 
-  app.post("/api/submissions", (request, response, next) => {
+  app.delete(
+    ["/invoice/api/admin/submissions/:id", "/api/admin/submissions/:id"],
+    adminAuth,
+    async (request, response, next) => {
+      try {
+        const deleted = await deleteSubmissionForAdmin(db, request.params.id);
+
+        if (!deleted) {
+          response.status(404).json({
+            success: false,
+            error: {
+              message: "提交记录不存在或已被删除。",
+            },
+          });
+          return;
+        }
+
+        response.status(200).json({
+          success: true,
+          id: deleted.id,
+        });
+      } catch (error) {
+        next(error);
+      }
+    }
+  );
+
+  app.post(["/invoice/api/submissions", "/api/submissions"], (request, response, next) => {
     upload.single("attachment")(request, response, (error) => {
       if (error) {
         next(error);
@@ -134,7 +151,7 @@ export function createApp({
     });
   });
 
-  app.post("/api/submissions", async (request, response, next) => {
+  app.post(["/invoice/api/submissions", "/api/submissions"], async (request, response, next) => {
     try {
       const submission = await createSubmissionRecord({
         body: request.body,
@@ -155,6 +172,12 @@ export function createApp({
 
   app.get(storeRoutes, (_request, response) => {
     response.sendFile(path.join(staticDir, "index.html"));
+  });
+
+  legacyStoreRoutes.forEach((legacyRoute) => {
+    app.get([legacyRoute, `${legacyRoute}/`], (_request, response) => {
+      response.sendFile(path.join(staticDir, "index.html"));
+    });
   });
 
   app.use(sendNotFound);
