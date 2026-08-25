@@ -38,6 +38,14 @@ test("invoice admin exposes a POST logout action", () => {
   assert.match(adminHtml, /name="returnTo" value="\/invoice"/);
   assert.match(adminHtml, /<nav class="topbar" aria-label="发票中心导航">/);
   assert.match(adminHtml, /<span>发票中心<\/span>/);
+  assert.match(adminHtml, /id="center-switcher" hidden/);
+  assert.match(adminHtml, /href="\/expense"/);
+  assert.match(adminHtml, /href="\/invoice" aria-current="page"/);
+  assert.match(adminHtml, /href="\/staff"/);
+  assert.match(adminHtml, /\.center-switcher-option\[aria-current="page"\] \{ background: var\(--brand-soft\); \}/);
+  assert.match(adminHtml, /M8 7V5\.5A2\.5 2\.5 0 0 1 10\.5 3H22/);
+  assert.match(adminHtml, /payload\?\.scopes\?\.invoice\?\.role === "admin"/);
+  assert.match(adminHtml, /centerSwitcherBackdrop\.addEventListener\("click"/);
   assert.match(adminHtml, /id="theme-icon" aria-hidden="true">🌙<\/span>/);
   assert.match(adminHtml, /themeIcon\.textContent = normalizedTheme === "dark" \? "☀️" : "🌙"/);
   assert.match(adminHtml, /window\.localStorage\.setItem\(THEME_STORAGE_KEY, normalizedTheme\)/);
