@@ -43,7 +43,11 @@ test("invoice admin exposes a POST logout action", () => {
   assert.match(adminHtml, /href="\/invoice" aria-current="page"/);
   assert.match(adminHtml, /href="\/staff"/);
   assert.match(adminHtml, /\.center-switcher-option\[aria-current="page"\] \{ background: var\(--brand-soft\); \}/);
+  assert.match(adminHtml, /\.center-switcher-option\[data-management\] svg \{ color: #a78bfa; \}/);
+  assert.match(adminHtml, /id="center-switcher-chevron"[^>]+hidden/);
+  assert.match(adminHtml, /centerSwitcherChevron\.toggleAttribute\("hidden", centerSwitcherTrigger\.disabled\)/);
   assert.match(adminHtml, /M8 7V5\.5A2\.5 2\.5 0 0 1 10\.5 3H22/);
+  assert.match(adminHtml, /link\.innerHTML = '[^']+<span>账号管理<\/span><span><\/span>'/);
   assert.match(adminHtml, /allowed\.includes\(link\.dataset\.center\)/);
   assert.match(adminHtml, /centerSwitcherBackdrop\.addEventListener\("click"/);
   assert.match(adminHtml, /id="theme-icon" aria-hidden="true">🌙<\/span>/);
