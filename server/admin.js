@@ -123,9 +123,13 @@ export function normalizeAdminListQuery(query) {
   };
 }
 
-function buildListWhereClause({ search, storeKey }) {
+function buildListWhereClause({ search, storeKey }, allowedStores) {
   const clauses = [];
   const params = {};
+  if (allowedStores) {
+    const placeholders = allowedStores.map((store, index) => { params[`allowedStore${index}`] = store; return `@allowedStore${index}`; });
+    clauses.push(placeholders.length ? `store_key IN (${placeholders.join(",")})` : "0 = 1");
+  }
 
   if (storeKey) {
     clauses.push("store_key = @storeKey");
@@ -152,9 +156,9 @@ function buildListWhereClause({ search, storeKey }) {
   };
 }
 
-export function listSubmissionsForAdmin(db, query) {
+export function listSubmissionsForAdmin(db, query, allowedStores) {
   const normalizedQuery = normalizeAdminListQuery(query);
-  const { whereSql, params } = buildListWhereClause(normalizedQuery);
+  const { whereSql, params } = buildListWhereClause(normalizedQuery, allowedStores);
   const items = db
     .prepare(
       `SELECT
@@ -199,6 +203,7 @@ export function getSubmissionAttachment(db, submissionId) {
     .prepare(
       `SELECT
         id,
+        store_key,
         attachment_path,
         attachment_name,
         attachment_content_type

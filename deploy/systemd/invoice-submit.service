@@ -11,6 +11,9 @@ Environment=PORT=8787
 Environment=INVOICE_SUBMIT_HOST=127.0.0.1
 Environment=INVOICE_SUBMIT_DATA_ROOT=/var/lib/invoice-submit
 EnvironmentFile=-/etc/invoice-submit.env
+# Shared transport secret and per-application migration mode.
+EnvironmentFile=-/etc/admin-auth-internal.env
+EnvironmentFile=-/etc/admin-auth-invoice-mode.env
 ExecStart=/usr/bin/node /opt/invoice-submit/current/server/index.js
 Restart=always
 RestartSec=3

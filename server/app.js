@@ -1,3 +1,4 @@
+import { applicationAuth, gatewayAuthConfig, allowedStores, storeAllowed, requirePermission, sessionInfo } from "./authorization.js";
 import path from "node:path";
 
 import express from "express";
@@ -56,11 +57,13 @@ export function createApp({
   staticDir = publicDir,
   uploadDirectory = uploadsRoot,
   adminCredentials = { username: adminUsername, password: adminPassword },
+  gatewayAuth = gatewayAuthConfig(),
 } = {}) {
   const app = express();
-  const adminAuth = createAdminAuthMiddleware(adminCredentials);
+  const adminAuth = applicationAuth(createAdminAuthMiddleware(adminCredentials), gatewayAuth);
 
   app.disable("x-powered-by");
+  app.set("trust proxy", "loopback");
   app.get("/index.html", sendNotFound);
   app.get("/admin.html", sendNotFound);
   app.use(express.static(staticDir, { index: false }));
@@ -73,13 +76,15 @@ export function createApp({
     response.sendFile(path.join(staticDir, "home.html"));
   });
 
-  app.get(["/invoice", "/invoice/"], adminAuth, (_request, response) => {
+  app.get(["/invoice", "/invoice/"], adminAuth, requirePermission("submission:view"), (_request, response) => {
     response.sendFile(path.join(staticDir, "admin.html"));
   });
 
-  app.get(["/invoice/api/admin/submissions", "/api/admin/submissions"], adminAuth, (request, response, next) => {
+  app.get(["/invoice/api/admin/session", "/api/admin/session"], adminAuth, (_request, response) => response.json(sessionInfo(response)));
+
+  app.get(["/invoice/api/admin/submissions", "/api/admin/submissions"], adminAuth, requirePermission("submission:view"), (request, response, next) => {
     try {
-      const result = listSubmissionsForAdmin(db, request.query);
+      const result = listSubmissionsForAdmin(db, request.query, allowedStores(response));
       response.status(200).json({
         success: true,
         ...result,
@@ -91,11 +96,11 @@ export function createApp({
 
   app.get(
     ["/invoice/api/admin/submissions/:id/attachment", "/api/admin/submissions/:id/attachment"],
-    adminAuth,
+    adminAuth, requirePermission("attachment:view"),
     (request, response) => {
       const attachment = getSubmissionAttachment(db, request.params.id);
 
-      if (!attachment) {
+      if (!attachment || !storeAllowed(response, attachment.store_key)) {
         response.status(404).json({
           success: false,
           error: {
@@ -116,7 +121,12 @@ export function createApp({
 
   app.delete(
     ["/invoice/api/admin/submissions/:id", "/api/admin/submissions/:id"],
-    adminAuth,
+    adminAuth, requirePermission("submission:delete"),
+    (request, response, next) => {
+      const record = db.prepare("SELECT store_key FROM submissions WHERE id = ?").get(request.params.id);
+      if (!record || !storeAllowed(response, record.store_key)) return response.status(404).json({ success: false, error: { message: "提交记录不存在。" } });
+      next();
+    },
     async (request, response, next) => {
       try {
         const deleted = await deleteSubmissionForAdmin(db, request.params.id);

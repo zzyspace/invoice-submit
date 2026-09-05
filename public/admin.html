@@ -599,7 +599,9 @@
           height: 56vh;
         }
       }
-    </style>
+    [hidden] { display: none !important; }
+.center-switcher-trigger:disabled { opacity: 1; color: inherit; cursor: default; }
+</style>
   </head>
   <body>
     <main class="page">
@@ -778,7 +780,7 @@
         if (restoreFocus) centerSwitcherTrigger.focus();
       }
 
-      function openCenterSwitcher() {
+      function openCenterSwitcher() { if (centerSwitcherTrigger.disabled) return;
         centerSwitcher.classList.add("is-open");
         centerSwitcherTrigger.setAttribute("aria-expanded", "true");
         centerSwitcherMenu.hidden = false;
@@ -787,15 +789,27 @@
         centerSwitcherMenu.querySelector("[aria-current='page']")?.focus();
       }
 
-      async function enableCenterSwitcherForAdmin() {
+
+      async function loadAuthorizedCenters(container, trigger, menu, currentApp) {
+        container.hidden = false;
+        trigger.disabled = true;
+        trigger.querySelector(".center-switcher-chevron")?.setAttribute("hidden", "");
         try {
           const response = await fetch("/auth/api/session", { headers: { Accept: "application/json" } });
           const payload = await response.json();
-          centerSwitcher.hidden = !(response.ok && payload?.scopes?.invoice?.role === "admin");
-        } catch {
-          centerSwitcher.hidden = true;
-        }
+          if (!response.ok) return;
+          const allowed = payload.apps || [];
+          for (const link of menu.querySelectorAll("[data-center]")) link.hidden = !allowed.includes(link.dataset.center);
+          if (payload.canManageAccounts && !menu.querySelector('[data-management]')) {
+            const link = document.createElement("a"); link.href = "/auth/accounts"; link.className = "center-switcher-option"; link.dataset.management = "true"; link.setAttribute("role", "menuitem"); link.textContent = "账号管理"; menu.appendChild(link);
+          }
+          trigger.disabled = allowed.filter((app) => app !== currentApp).length === 0 && !payload.canManageAccounts;
+        } catch { /* Keep the current center label, with switching disabled. */ }
+        const arrow = trigger.querySelector(".center-switcher-chevron");
+        if (arrow) arrow.hidden = trigger.disabled;
       }
+
+      async function enableCenterSwitcherForAdmin() { await loadAuthorizedCenters(centerSwitcher, centerSwitcherTrigger, centerSwitcherMenu, "invoice"); }
 
       function readSavedTheme() {
         try {
@@ -1084,7 +1098,7 @@
             .filter(Boolean)
             .join(" · ");
           attachmentLink.dataset.attachmentMeta = attachmentMeta.textContent;
-          attachmentCell.append(attachmentLink, attachmentMeta);
+          if (can("attachment:view")) attachmentCell.append(attachmentLink, attachmentMeta); else attachmentCell.textContent = "无附件权限";
           row.appendChild(attachmentCell);
 
           row.appendChild(createCell(formatDisplayValue(item.note)));
@@ -1099,7 +1113,7 @@
           deleteButton.dataset.submissionId = item.id || "";
           deleteButton.disabled = state.loading || state.deletingIds.has(item.id);
           deleteButton.textContent = state.deletingIds.has(item.id) ? "删除中..." : "删除";
-          actionsCell.appendChild(deleteButton);
+          if (can("submission:delete")) actionsCell.appendChild(deleteButton);
           row.appendChild(actionsCell);
 
           recordsBody.appendChild(row);
@@ -1117,7 +1131,23 @@
         emptyState.hidden = state.items.length > 0;
       }
 
+
+      let grantedPermissions = new Set();
+      const can = (permission) => grantedPermissions.has(permission);
+      async function loadPermissions() {
+        try {
+          const response = await fetch("/invoice/api/admin/session");
+          const payload = await response.json();
+          if (!response.ok || !payload.success) throw new Error(payload.error?.message || "权限加载失败，请重新登录。");
+          grantedPermissions = new Set(payload.permissions || []);
+          for (const option of document.querySelectorAll('select[name="storeKey"] option, #edit-store option')) {
+            if (option.value && option.value !== "all") option.disabled = payload.stores !== "all" && !payload.stores.includes(option.value);
+          }
+          return true;
+        } catch (error) { grantedPermissions.clear(); recordsBody.textContent = ""; setStatus(error.message, true); return false; }
+      }
       async function loadRecords() {
+        if (!(await loadPermissions())) return;
         state.loading = true;
         prevButton.disabled = true;
         nextButton.disabled = true;
@@ -1167,6 +1197,7 @@
       }
 
       async function deleteSubmission(submissionId) {
+        if (!can("submission:delete")) return;
         const item = state.items.find((entry) => entry.id === submissionId);
 
         if (!item) {
