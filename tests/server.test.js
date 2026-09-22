@@ -146,6 +146,35 @@ test("根路径返回品牌主页，只有门店路径返回开票页面", async
   });
 });
 
+test("小程序入口公开访问且重新验证缓存，不改变后台鉴权", async (t) => {
+  const db = createTestDatabase();
+  t.after(() => db.close());
+  const app = createApp({ db, adminCredentials: { username: "admin", password: "secret-pass" }, staticDir: path.join(process.cwd(), "public") });
+  await withServer(app, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/mini.html`);
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get("content-type"), /text\/html/);
+    assert.equal(response.headers.get("cache-control"), "public, max-age=0");
+    const etag = response.headers.get("etag");
+    assert.ok(etag);
+    assert.ok(response.headers.get("last-modified"));
+    assert.match(await response.text(), /id="management-panel"/);
+    // Use raw HTTP to avoid fetch injecting cache-bypass headers for a manual conditional request.
+    const revalidatedStatus = await new Promise((resolve, reject) => {
+      http.get(`${baseUrl}/mini.html`, { headers: { "If-None-Match": etag } }, (result) => {
+        result.resume();
+        result.on("end", () => resolve(result.statusCode));
+        result.on("error", reject);
+      }).on("error", reject);
+    });
+    assert.equal(revalidatedStatus, 304);
+    const protectedResponse = await fetch(`${baseUrl}/invoice/api/admin/submissions`);
+    assert.equal(protectedResponse.status, 401);
+    const hiddenSource = await fetch(`${baseUrl}/admin.html`);
+    assert.equal(hiddenSource.status, 404);
+  });
+});
+
 test("缺少邮箱时提交失败", async () => {
   const db = createTestDatabase();
   const tempDir = createTempDirectory();

@@ -10,6 +10,10 @@ const pages = [
     source: new URL("../home.html", import.meta.url),
     target: new URL("../public/home.html", import.meta.url),
   },
+  {
+    source: new URL("../mini.html", import.meta.url),
+    target: new URL("../public/mini.html", import.meta.url),
+  },
 ];
 
 await mkdir(publicDir, { recursive: true });
