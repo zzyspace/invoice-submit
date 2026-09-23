@@ -27,7 +27,7 @@ const password = randomBytes(24).toString('base64url');
 try {
 accounts = createAccountStore({ stateDir });
 database = createSessionDatabase({ stateDir });
-const roleIds = ['submit-only', 'accounts-only', 'full'];
+const roleIds = ['submit-only', 'accounts-only', 'full', 'store-only', 'staff-only', 'invoice-only', 'no-grants'];
 for (const accountId of roleIds) accounts.createAccount({ accountId, username: accountId, password }, { actor: 'isolated-fixture' });
 const grant = (accountId, app, permissions, config) => accounts.putAccess({ accountId, app, role: app === 'expense' ? 'manager' : 'admin', enabled: true, permissions, config }, { actor: 'isolated-fixture', expectedVersion: 0 });
 grant('submit-only', 'expense', ['report:submit'], { viewScope: { ownership: 'self', stores: [], channels: [] }, submitScope: { stores: ['fuzzy'], channels: ['reimbursement_fuzzy_manager'] } });
@@ -35,6 +35,9 @@ grant('full', 'invoice', ['submission:view'], { viewScope: { ownership: 'any', s
 grant('full', 'staff', ['employee:view'], { viewScope: { ownership: 'any', stores: 'all' } });
 grant('full', 'store', ['coupon:view'], { viewScope: { ownership: 'any', stores: 'all' } });
 grant('full', 'expense', ['report:view', 'report:submit'], { viewScope: { ownership: 'any', stores: 'all', channels: 'all' }, submitScope: { stores: 'all', channels: 'all' } });
+grant('store-only', 'store', ['coupon:view'], { viewScope: { ownership: 'any', stores: 'all' } });
+grant('staff-only', 'staff', ['employee:view'], { viewScope: { ownership: 'any', stores: 'all' } });
+grant('invoice-only', 'invoice', ['submission:view'], { viewScope: { ownership: 'any', stores: 'all' } });
 const config = loadConfig({ ADMIN_AUTH_MODE: 'unified', ADMIN_AUTH_INTERNAL_TOKEN: randomBytes(32).toString('hex'), ADMIN_AUTH_MANAGEMENT_ACCOUNT_IDS: 'accounts-only,full', ADMIN_AUTH_COOKIE_SECURE: 'false', ADMIN_AUTH_COOKIE_NAME: 'admin_session' });
 const { app, sessions } = createApp({ config, database, accounts });
 server = http.createServer((request, response) => {
@@ -61,16 +64,17 @@ server = http.createServer((request, response) => {
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
   const state = async name => { await page.goto(base + '/mini.html'); await page.waitForFunction(() => document.querySelector('#management-panel').dataset.state !== 'loading'); assert.equal(await page.locator('#management-panel').getAttribute('data-state'), name); };
   const links = () => page.locator('#management-grid a').evaluateAll(nodes => Object.fromEntries(nodes.map(node => [node.dataset.app, node.getAttribute('href')])));
-  await state('anonymous'); assert.equal(Object.keys(await links()).length, 6); checks.push('anonymous portal renders six choices including explicit expense submission login');
-  await page.locator('[data-app="expense"]').click();
+  await state('anonymous'); assert.equal(Object.keys(await links()).length, 0); assert.equal(await page.getByRole('heading', { name: '业务管理', exact: true }).count(), 0); checks.push('anonymous portal hides all business entries and presents a single login action');
+  await page.locator('#login-link').click();
   assert.equal(new URL(page.url()).pathname, '/login');
   // Invalid double-submit token must not create a login session.
   const invalidLogin = await context.request.post(base + '/login', { form: { username: 'submit-only', password, csrfToken: 'invalid', returnTo: '/expense' }, maxRedirects: 0 });
   assert.equal(invalidLogin.status(), 403); checks.push('real login endpoint rejects invalid CSRF token');
-  async function login(id, destination, entryApp) {
+  async function login(id) {
+    const destination = '/mini.html';
     await context.clearCookies();
     await state('anonymous');
-    await page.locator(`[data-app="${entryApp}"]`).click();
+    await page.locator('#login-link').click();
     const loginUrl = new URL(page.url());
     assert.equal(loginUrl.pathname, '/login');
     assert.equal(loginUrl.searchParams.get('returnTo'), destination);
@@ -88,17 +92,36 @@ server = http.createServer((request, response) => {
     assert.ok(cookie); assert.equal(cookie.httpOnly, true); assert.equal(cookie.sameSite, 'Lax');
     assert.equal(await page.evaluate(() => document.cookie.includes('admin_session=')), false);
     await state('authenticated');
+    const existingLogin = await context.request.get(base + '/login?returnTo=%2Fmini.html', { maxRedirects: 0 });
+    assert.equal(existingLogin.status(), 303); assert.equal(existingLogin.headers().location, '/mini.html');
   }
-  await login('submit-only', '/expense/submit', 'expense-submit');
+  async function rejectLogin(id, suppliedPassword, destination = '/mini.html') {
+    await context.clearCookies();
+    await page.goto(base + '/login?returnTo=' + encodeURIComponent(destination));
+    const csrfToken = await page.locator('input[name="csrfToken"]').inputValue();
+    const result = await context.request.post(base + '/login', { form: { username: id, password: suppliedPassword, csrfToken, returnTo: destination }, maxRedirects: 0 });
+    assert.equal(result.status(), 401);
+    assert.ok(!(await context.cookies()).find(cookie => cookie.name === 'admin_session'));
+  }
+  await rejectLogin('no-grants', password);
+  await rejectLogin('submit-only', 'incorrect-password');
+  await rejectLogin('submit-only', password, '/invoice');
+  checks.push('no-grant and wrong-password accounts cannot enter; business-specific login still enforces its original scope');
+  for (const app of ['store', 'staff', 'invoice']) {
+    await login(app + '-only');
+    assert.deepEqual(await links(), { [app]: '/' + app });
+  }
+  checks.push('store-only, staff-only and invoice-only accounts use the same login and retain only their own destination');
+  await login('submit-only');
   assert.deepEqual(await links(), { expense: '/expense/submit' });
   assert.match(await page.locator('[data-app="expense"]').innerText(), /提交报账/);
   await page.screenshot({ path: path.join(out, 'auth-portal-submit-only.png'), fullPage: true });
-  checks.push('actual anonymous expense-submit link and real form login redirect to /expense/submit with valid Cookie');
+  checks.push('single workbench login accepts submit-only account and returns to /mini.html with valid Cookie');
   assert.equal((await context.request.get(base + '/expense')).status(), 403);
   checks.push('submit-only fixture denies expense dashboard, so the regression cannot hide behind an unrestricted stub');
-  await login('accounts-only', '/auth/accounts', 'accounts'); assert.deepEqual(await links(), { accounts: '/auth/accounts' });
+  await login('accounts-only'); assert.deepEqual(await links(), { accounts: '/auth/accounts' });
   checks.push('management-only account renders accounts entry without business grants');
-  await login('full', '/invoice', 'invoice');
+  await login('full');
   assert.deepEqual(await links(), { store: '/store', expense: '/expense', invoice: '/invoice', staff: '/staff', accounts: '/auth/accounts' });
   await page.screenshot({ path: path.join(out, 'auth-portal-full.png'), fullPage: true });
   checks.push('full account renders all four actual destinations and management entry');
@@ -113,10 +136,10 @@ server = http.createServer((request, response) => {
   assert.equal(invalidLogout.status, 403); checks.push('logout rejects a foreign Origin');
   await page.evaluate(async () => { await fetch('/logout', { method: 'POST', body: new URLSearchParams({ returnTo: '/invoice' }) }); });
   await state('anonymous'); assert.ok(!(await context.cookies()).find(cookie => cookie.name === 'admin_session')); checks.push('same-origin browser logout clears Cookie and returns portal to anonymous');
-  await login('submit-only', '/expense/submit', 'expense-submit');
+  await login('submit-only');
   const account = accounts.getAccount('submit-only');
   accounts.updateAccount('submit-only', { enabled: false }, { actor: 'isolated-fixture', expectedVersion: account.version });
-  await state('anonymous'); checks.push('account disable invalidates existing session and portal falls back to login');
+  await state('anonymous'); await rejectLogin('submit-only', password); checks.push('account disable invalidates existing session and denies a fresh workbench login');
   assert.deepEqual(errors, []); checks.push('no page JavaScript errors');
   const result = { passed: checks.length, checks, limitations: ['Chrome over local HTTP with test-only Secure=false; production Secure/HTTPS and actual Nginx not exercised.', 'Portal and gateway/session/account code are actual; other destination pages are fixtures gated by real session grants, not full business services.', 'No production data or requests; not a WeChat or native-device test.'] };
   fs.writeFileSync(path.join(out, 'auth-portal-integration-results.json'), JSON.stringify(result, null, 2) + '\n');

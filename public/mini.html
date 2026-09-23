@@ -45,6 +45,12 @@
     .session-status { margin: 0 0 16px; min-height: 22px; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
     #management-grid { display: grid; gap: 10px; }
     .text-button { color: var(--brand); margin-top: 16px; }
+    .login-action { display: flex; justify-content: center; align-items: center; min-height: 50px; width: 100%; border-radius: 12px; background: #006ee6; color: #fff; font-size: 16px; font-weight: 600; }
+    .login-action:hover { background: #005ec4; }
+    .panel[data-state="anonymous"] { width: 100%; max-width: 440px; margin: clamp(28px, 10vh, 100px) auto 0; padding: 36px 28px; }
+    .panel[data-state="anonymous"] .panel-heading { justify-content: center; margin-bottom: 12px; }
+    .panel[data-state="anonymous"] h2 { font-size: 26px; letter-spacing: -.02em; }
+    .panel[data-state="anonymous"] .session-status { text-align: center; line-height: 1.75; margin-bottom: 28px; }
     noscript a { color: var(--brand); text-decoration: underline; }
     @media (max-width: 680px) { .page { padding: 20px 16px max(28px, env(safe-area-inset-bottom)); } .topbar { margin-bottom: 28px; } h1 { font-size: 27px; } .columns { grid-template-columns: 1fr; gap: 16px; } .panel { padding: 20px; } .section-note { font-size: 11px; } }
     @media (max-width: 350px) { .page { padding-left: 12px; padding-right: 12px; } .panel { padding: 16px; } .entry { padding: 12px; gap: 10px; } .brand { font-size: 15px; } }
@@ -56,16 +62,17 @@
       <a class="brand" href="/" aria-label="COME OVER 品牌首页">COME OVER</a>
       <button class="theme-button" id="theme-toggle" type="button" aria-label="切换深色外观" aria-pressed="false">深色外观</button>
     </header>
-    <div class="intro"><h1>工作台</h1><p>进入你的管理后台。</p></div>
+    <div class="intro" id="workbench-intro" hidden><h1>工作台</h1><p>进入你的管理后台。</p></div>
     <div class="columns">
       <section class="panel" id="management-panel" data-state="loading" aria-labelledby="management-heading" aria-busy="true">
-        <div class="panel-heading"><h2 id="management-heading">业务管理</h2><span class="section-note" id="session-badge">正在确认</span></div>
+        <div class="panel-heading"><h2 id="management-heading">正在连接</h2><span class="section-note" id="session-badge">正在确认</span></div>
         <p class="session-status" id="session-status" role="status" aria-live="polite">正在确认登录状态…</p>
-        <nav id="management-grid" aria-label="管理后台"></nav>
+        <nav id="management-grid" aria-label="管理后台" hidden></nav>
+        <a class="login-action" id="login-link" href="/login?returnTo=%2Fmini.html" hidden>登录</a>
         <button class="text-button" id="session-retry" type="button" hidden>重新检查登录状态</button>
       </section>
     </div>
-    <noscript><p>请启用 JavaScript 查看可用后台。也可直接进入：<a href="/store">门店管理</a>、<a href="/expense">报账中心</a>、<a href="/invoice">发票中心</a>、<a href="/staff">员工中心</a>、<a href="/auth/accounts">账号管理</a>。</p></noscript>
+    <noscript><p>请启用 JavaScript 查看工作台，或<a href="/login?returnTo=%2Fmini.html">前往登录</a>。</p></noscript>
   </main>
   <script>
     (() => {
@@ -98,14 +105,14 @@
       else if (media.addListener) media.addListener(updateThemeLabel);
       updateThemeLabel();
 
-      function card(entry, href, anonymous) {
+      function card(entry, href) {
         const link = document.createElement("a");
         link.className = "entry"; link.href = href; link.dataset.app = entry.app;
         const mark = document.createElement("span"); mark.className = "entry-mark"; mark.textContent = entry.mark; mark.setAttribute("aria-hidden", "true");
         const copy = document.createElement("span"); copy.className = "entry-copy";
         const title = document.createElement("span"); title.className = "entry-title"; title.textContent = href === "/expense/submit" ? "提交报账" : entry.title;
         const description = document.createElement("span"); description.className = "entry-description";
-        description.textContent = anonymous ? "登录后进入" : href === "/expense/submit" ? "按已授权渠道提交报账" : entry.description;
+        description.textContent = href === "/expense/submit" ? "按已授权渠道提交报账" : entry.description;
         copy.append(title, description);
         const arrow = document.createElement("span"); arrow.className = "chevron"; arrow.textContent = "›"; arrow.setAttribute("aria-hidden", "true");
         link.append(mark, copy, arrow); return link;
@@ -114,7 +121,12 @@
         $("management-panel").dataset.state = state;
         $("management-panel").setAttribute("aria-busy", String(state === "loading"));
         $("session-status").textContent = text; $("session-badge").textContent = badge;
-        $("session-retry").hidden = state === "loading";
+        $("session-retry").hidden = state === "loading" || state === "anonymous";
+        $("login-link").hidden = state !== "anonymous";
+        $("management-grid").hidden = state !== "authenticated";
+        $("workbench-intro").hidden = state !== "authenticated";
+        $("session-badge").hidden = state === "anonymous";
+        $("management-heading").textContent = state === "anonymous" ? "登录工作台" : state === "authenticated" ? "业务管理" : state === "error" ? "暂时无法连接" : "正在连接";
       }
       let currentRequest = 0;
       let controller;
@@ -130,14 +142,7 @@
           const response = await fetch("/auth/api/session", { credentials: "same-origin", cache: "no-store", redirect: "error", headers: { Accept: "application/json" }, signal: activeController.signal });
           if (request !== currentRequest) return;
           if (response.status === 401) {
-            for (const entry of entries) {
-              $("management-grid").append(card(entry, "/login?returnTo=" + encodeURIComponent(entry.paths[0]), true));
-              // Before login the role is unknown. The gateway preserves returnTo,
-              // so offer submission directly instead of sending submit-only users
-              // through the report:view-protected expense dashboard.
-              if (entry.app === "expense") $("management-grid").append(card({ ...entry, app: "expense-submit", title: "提交报账" }, "/login?returnTo=%2Fexpense%2Fsubmit", true));
-            }
-            setStatus("anonymous", "请选择后台，使用现有账号登录。", "未登录");
+            setStatus("anonymous", "使用后台账号登录，查看可用的业务功能。", "未登录");
             return;
           }
           if (!response.ok) throw new Error("Session unavailable");
@@ -149,7 +154,7 @@
             const destination = entry.app === "accounts" ? (session.canManageAccounts === true ? "/auth/accounts" : null) : session.destinations[entry.app];
             // Only canonical, known paths can become links. Roles never imply access.
             if (!entry.paths.includes(destination)) continue;
-            $("management-grid").append(card(entry, destination, false)); count++;
+            $("management-grid").append(card(entry, destination)); count++;
           }
           setStatus("authenticated", count ? "以下为当前账号可进入的后台。" : "当前账号暂无可进入的后台，请联系管理员。", "已登录");
         } catch {

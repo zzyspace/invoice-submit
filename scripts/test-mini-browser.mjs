@@ -44,10 +44,14 @@ if (process.argv.includes("--serve")) {
     const session = (destinations, canManageAccounts = false) => ({ status: 200, body: { success: true, destinations, canManageAccounts } });
     const checks = [];
     await load({ status: 401, body: { success: false } }, "anonymous");
-    assert.deepEqual(await links(), [["store", "/login?returnTo=%2Fstore"], ["expense", "/login?returnTo=%2Fexpense"], ["expense-submit", "/login?returnTo=%2Fexpense%2Fsubmit"], ["invoice", "/login?returnTo=%2Finvoice"], ["staff", "/login?returnTo=%2Fstaff"], ["accounts", "/login?returnTo=%2Fauth%2Faccounts"]]);
-    checks.push("anonymous canonical login destinations");
+    assert.deepEqual(await links(), []);
+    assert.equal(await page.locator('#login-link').isVisible(), true);
+    assert.equal(await page.locator('#login-link').getAttribute('href'), '/login?returnTo=%2Fmini.html');
+    assert.equal(await page.getByRole('heading', { name: '业务管理', exact: true }).count(), 0);
+    checks.push("anonymous shows only login guidance; no business links or business heading");
     await load(session({ store: "/store", expense: "/expense", invoice: "/invoice", staff: "/staff" }, true), "authenticated");
     assert.equal((await links()).length, 5);
+    assert.equal(await page.locator("#login-link").isVisible(), false);
     await load(session({ expense: "/expense/submit" }), "authenticated");
     assert.deepEqual(await links(), [["expense", "/expense/submit"]]);
     assert.equal(await page.locator("#management-grid .entry-title").textContent(), "提交报账");
@@ -73,7 +77,8 @@ if (process.argv.includes("--serve")) {
     gateway = { status: 401, body: { success: false } };
     await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true })));
     await state("anonymous");
-    assert.ok((await links()).every(([, href]) => href.startsWith("/login?returnTo=")));
+    assert.deepEqual(await links(), []);
+    assert.equal(await page.locator("#login-link").isVisible(), true);
     checks.push("back-forward cache return revalidates revoked session");
     await load({ status: 401, body: { success: false } }, "anonymous");
     const screenshots = process.env.MINI_SCREENSHOT_DIR || await fs.mkdtemp(path.join(os.tmpdir(), "comeover-mini-browser-"));
