@@ -45,16 +45,7 @@ if (process.argv.includes("--serve")) {
     const checks = [];
     await load({ status: 401, body: { success: false } }, "anonymous");
     assert.deepEqual(await links(), [["store", "/login?returnTo=%2Fstore"], ["expense", "/login?returnTo=%2Fexpense"], ["expense-submit", "/login?returnTo=%2Fexpense%2Fsubmit"], ["invoice", "/login?returnTo=%2Finvoice"], ["staff", "/login?returnTo=%2Fstaff"], ["accounts", "/login?returnTo=%2Fauth%2Faccounts"]]);
-    assert.equal(await page.locator("#invoice-form-link").getAttribute("href"), null);
-    checks.push("anonymous canonical login destinations; store selection required");
-    for (const store of ["fuzzy", "fuzzy-qz", "peanut"]) {
-      await page.selectOption("#store-select", store);
-      assert.equal(await page.locator("#invoice-form-link").getAttribute("href"), `/invoice/${store}`);
-      assert.equal(await page.locator("#staff-form-link").getAttribute("href"), `/staff/${store}`);
-    }
-    await page.selectOption("#store-select", "");
-    assert.equal(await page.locator("#staff-form-link").getAttribute("href"), null);
-    checks.push("all three public store routes; selection reset");
+    checks.push("anonymous canonical login destinations");
     await load(session({ store: "/store", expense: "/expense", invoice: "/invoice", staff: "/staff" }, true), "authenticated");
     assert.equal((await links()).length, 5);
     await load(session({ expense: "/expense/submit" }), "authenticated");

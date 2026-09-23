@@ -18,10 +18,10 @@
     [hidden] { display: none !important; }
     body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Noto Sans SC",sans-serif; }
     a { color: inherit; text-decoration: none; }
-    button, select { font: inherit; color: inherit; }
-    button, a, select { -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; color: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
     button { cursor: pointer; }
-    a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+    a:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
     .page { max-width: 1040px; margin: 0 auto; padding: 28px 24px max(32px, env(safe-area-inset-bottom)); }
     .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 36px; }
     .brand { font-size: 17px; font-weight: 800; letter-spacing: .1em; }
@@ -30,31 +30,21 @@
     .intro { margin-bottom: 26px; }
     h1 { margin: 0 0 6px; font-size: 30px; line-height: 1.3; letter-spacing: -.025em; }
     .intro p { margin: 0; color: var(--muted); }
-    .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+    .columns { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start; }
     .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 24px; }
     .panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 17px; }
     h2 { margin: 0; font-size: 19px; line-height: 1.4; }
     .section-note { font-size: 12px; color: var(--muted); }
-    .field-label { display: block; margin-bottom: 8px; font-size: 13px; color: var(--muted); }
-    select { width: 100%; min-height: 48px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--bg); }
-    .service-list { display: grid; gap: 10px; margin-top: 18px; }
     .entry { display: flex; align-items: center; gap: 13px; min-height: 76px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; overflow-wrap: anywhere; }
     .entry:hover { background: var(--hover); }
-    .entry[aria-disabled="true"] { color: var(--muted); background: var(--bg); cursor: default; }
     .entry-copy { flex: 1; min-width: 0; }
     .entry-title { display: block; font-size: 15px; font-weight: 600; }
     .entry-description { display: block; margin-top: 3px; font-size: 12px; color: var(--muted); }
     .entry-mark { display: flex; align-items: center; justify-content: center; width: 37px; height: 37px; flex: 0 0 37px; border-radius: 10px; background: var(--soft); color: var(--brand); font-weight: 650; }
-    .entry[aria-disabled="true"] .entry-mark { color: var(--muted); background: var(--line); }
     .chevron { color: var(--muted); font-size: 23px; line-height: 1; }
     .session-status { margin: 0 0 16px; min-height: 22px; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
     #management-grid { display: grid; gap: 10px; }
     .text-button { color: var(--brand); margin-top: 16px; }
-    .more { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; border-top: 1px solid var(--line); margin-top: 22px; padding-top: 17px; }
-    .more a { min-height: 36px; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; }
-    .more a:hover { color: var(--brand); }
-    .footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; padding-top: 22px; font-size: 12px; color: var(--muted); }
-    .footer a { text-decoration: underline; text-underline-offset: 3px; }
     noscript a { color: var(--brand); text-decoration: underline; }
     @media (max-width: 680px) { .page { padding: 20px 16px max(28px, env(safe-area-inset-bottom)); } .topbar { margin-bottom: 28px; } h1 { font-size: 27px; } .columns { grid-template-columns: 1fr; gap: 16px; } .panel { padding: 20px; } .section-note { font-size: 11px; } }
     @media (max-width: 350px) { .page { padding-left: 12px; padding-right: 12px; } .panel { padding: 16px; } .entry { padding: 12px; gap: 10px; } .brand { font-size: 15px; } }
@@ -66,23 +56,8 @@
       <a class="brand" href="/" aria-label="COME OVER 品牌首页">COME OVER</a>
       <button class="theme-button" id="theme-toggle" type="button" aria-label="切换深色外观" aria-pressed="false">深色外观</button>
     </header>
-    <div class="intro"><h1>工作台</h1><p>选择门店服务，或进入你的管理后台。</p></div>
+    <div class="intro"><h1>工作台</h1><p>进入你的管理后台。</p></div>
     <div class="columns">
-      <section class="panel" aria-labelledby="services-heading">
-        <div class="panel-heading"><h2 id="services-heading">门店服务</h2><span class="section-note">无需后台账号</span></div>
-        <label class="field-label" for="store-select">办理门店</label>
-        <select id="store-select">
-          <option value="">请选择门店</option>
-          <option value="fuzzy">Fuzzy</option>
-          <option value="fuzzy-qz">Fuzzy 泉州店</option>
-          <option value="peanut">Peanut</option>
-        </select>
-        <div class="service-list">
-          <a class="entry" id="invoice-form-link" aria-disabled="true" tabindex="-1"><span class="entry-mark" aria-hidden="true">票</span><span class="entry-copy"><span class="entry-title">开票信息</span><span class="entry-description">选择门店后，填写开票信息与凭证</span></span><span class="chevron" aria-hidden="true">›</span></a>
-          <a class="entry" id="staff-form-link" aria-disabled="true" tabindex="-1"><span class="entry-mark" aria-hidden="true">员</span><span class="entry-copy"><span class="entry-title">入职资料</span><span class="entry-description">选择门店后，提交入职资料</span></span><span class="chevron" aria-hidden="true">›</span></a>
-        </div>
-        <nav class="more" aria-label="更多内容"><a href="/">品牌首页 <span aria-hidden="true">↗</span></a><a href="/design/">集美空间 <span aria-hidden="true">↗</span></a></nav>
-      </section>
       <section class="panel" id="management-panel" data-state="loading" aria-labelledby="management-heading" aria-busy="true">
         <div class="panel-heading"><h2 id="management-heading">业务管理</h2><span class="section-note" id="session-badge">正在确认</span></div>
         <p class="session-status" id="session-status" role="status" aria-live="polite">正在确认登录状态…</p>
@@ -90,14 +65,12 @@
         <button class="text-button" id="session-retry" type="button" hidden>重新检查登录状态</button>
       </section>
     </div>
-    <noscript><p>请启用 JavaScript 查看可用后台。也可直接进入：<a href="/store">门店管理</a>、<a href="/expense">报账中心</a>、<a href="/invoice">发票中心</a>、<a href="/staff">员工中心</a>、<a href="/auth/accounts">账号管理</a>。</p><p>开票：<a href="/invoice/fuzzy">Fuzzy</a> · <a href="/invoice/fuzzy-qz">Fuzzy 泉州店</a> · <a href="/invoice/peanut">Peanut</a>；入职：<a href="/staff/fuzzy">Fuzzy</a> · <a href="/staff/fuzzy-qz">Fuzzy 泉州店</a> · <a href="/staff/peanut">Peanut</a>。</p></noscript>
-    <footer class="footer"><span>管理后台沿用现有账号与权限。</span><a href="/">返回 COME OVER 首页</a></footer>
+    <noscript><p>请启用 JavaScript 查看可用后台。也可直接进入：<a href="/store">门店管理</a>、<a href="/expense">报账中心</a>、<a href="/invoice">发票中心</a>、<a href="/staff">员工中心</a>、<a href="/auth/accounts">账号管理</a>。</p></noscript>
   </main>
   <script>
     (() => {
       "use strict";
       const $ = (id) => document.getElementById(id);
-      const stores = new Map([["fuzzy", "Fuzzy"], ["fuzzy-qz", "Fuzzy 泉州店"], ["peanut", "Peanut"]]);
       const entries = [
         { app: "store", title: "门店管理", mark: "店", description: "优惠券查询、激活与核销", paths: ["/store"] },
         { app: "expense", title: "报账中心", mark: "账", description: "报账提交与记录管理", paths: ["/expense", "/expense/submit"] },
@@ -124,21 +97,6 @@
       if (media.addEventListener) media.addEventListener("change", updateThemeLabel);
       else if (media.addListener) media.addListener(updateThemeLabel);
       updateThemeLabel();
-
-      function updateStoreLinks() {
-        const store = $("store-select").value;
-        const label = stores.get(store);
-        for (const [id, prefix, description] of [["invoice-form-link", "/invoice/", "填写开票信息与凭证"], ["staff-form-link", "/staff/", "提交入职资料"]]) {
-          const link = $(id);
-          if (label) link.setAttribute("href", prefix + store);
-          else link.removeAttribute("href");
-          link.setAttribute("aria-disabled", String(!label));
-          link.tabIndex = label ? 0 : -1;
-          link.querySelector(".entry-description").textContent = label ? label + " · " + description : "选择门店后，" + description;
-        }
-      }
-      $("store-select").addEventListener("change", updateStoreLinks);
-      updateStoreLinks();
 
       function card(entry, href, anonymous) {
         const link = document.createElement("a");
@@ -197,11 +155,11 @@
         } catch {
           if (request !== currentRequest) return;
           $("management-grid").replaceChildren();
-          setStatus("error", "暂时无法确认登录状态。请检查网络后重试，门店服务仍可使用。", "连接异常");
+          setStatus("error", "暂时无法确认登录状态。请检查网络后重试。", "连接异常");
         } finally { clearTimeout(timeout); }
       }
       $("session-retry").addEventListener("click", refreshSession);
-      window.addEventListener("pageshow", (event) => { if (event.persisted) { updateStoreLinks(); refreshSession(); } });
+      window.addEventListener("pageshow", (event) => { if (event.persisted) { refreshSession(); } });
       document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshSession(); });
       refreshSession();
     })();
