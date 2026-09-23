@@ -9,7 +9,7 @@
       (() => {
         let savedTheme = null;
         try {
-          savedTheme = window.localStorage.getItem("invoice-admin-theme");
+          savedTheme = window.localStorage.getItem("comeover-admin-theme") ?? window.localStorage.getItem("invoice-admin-theme");
         } catch {
           // Storage may be unavailable in privacy-restricted browser contexts.
         }
@@ -752,7 +752,7 @@
     </div>
 
     <script>
-      const THEME_STORAGE_KEY = "invoice-admin-theme";
+      const THEME_STORAGE_KEY = "comeover-admin-theme";
       const form = document.getElementById("filter-form");
       const refreshButton = document.getElementById("refresh-button");
       const prevButton = document.getElementById("prev-button");
@@ -831,7 +831,7 @@
 
       function readSavedTheme() {
         try {
-          const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+          const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY) ?? window.localStorage.getItem("invoice-admin-theme");
           return savedTheme === "light" || savedTheme === "dark" ? savedTheme : null;
         } catch {
           return null;
@@ -1331,6 +1331,9 @@
       const systemThemePreference = window.matchMedia("(prefers-color-scheme: dark)");
       applyTheme(document.documentElement.dataset.theme || (systemThemePreference.matches ? "dark" : "light"));
       themeToggle.addEventListener("click", () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark", true));
+      window.addEventListener("storage", (event) => {
+        if (event.key === THEME_STORAGE_KEY && (event.newValue === "light" || event.newValue === "dark")) applyTheme(event.newValue);
+      });
       systemThemePreference.addEventListener("change", (event) => { if (!readSavedTheme()) applyTheme(event.matches ? "dark" : "light"); });
 
       centerSwitcherTrigger.addEventListener("click", () => {

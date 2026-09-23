@@ -87,7 +87,7 @@
       ];
       const media = window.matchMedia("(prefers-color-scheme: dark)");
       let savedTheme;
-      try { savedTheme = localStorage.getItem("comeover-entry-theme"); } catch { /* Optional preference only. */ }
+      try { savedTheme = localStorage.getItem("comeover-admin-theme") ?? localStorage.getItem("comeover-entry-theme"); } catch { /* Optional preference only. */ }
       if (savedTheme === "light" || savedTheme === "dark") document.documentElement.dataset.theme = savedTheme;
       function updateThemeLabel() {
         const isDark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === "dark" : media.matches;
@@ -98,7 +98,12 @@
       $("theme-toggle").addEventListener("click", () => {
         const next = $("theme-toggle").getAttribute("aria-pressed") === "true" ? "light" : "dark";
         document.documentElement.dataset.theme = next;
-        try { localStorage.setItem("comeover-entry-theme", next); } catch { /* Storage is not required. */ }
+        try { localStorage.setItem("comeover-admin-theme", next); } catch { /* Storage is not required. */ }
+        updateThemeLabel();
+      });
+      window.addEventListener("storage", event => {
+        if (event.key !== "comeover-admin-theme" || (event.newValue !== "light" && event.newValue !== "dark")) return;
+        document.documentElement.dataset.theme = event.newValue;
         updateThemeLabel();
       });
       if (media.addEventListener) media.addEventListener("change", updateThemeLabel);
