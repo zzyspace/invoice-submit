@@ -8,7 +8,8 @@
     "start": "node ./server/index.js",
     "test": "node --test tests/*.test.js",
     "test:mini-browser": "node scripts/test-mini-browser.mjs",
-    "test:mini-gateway": "node scripts/test-mini-gateway.mjs"
+    "test:mini-gateway": "node scripts/test-mini-gateway.mjs",
+    "test:mini-wechat": "node scripts/test-mini-wechat.mjs"
   },
   "dependencies": {
     "better-sqlite3": "^12.11.1",

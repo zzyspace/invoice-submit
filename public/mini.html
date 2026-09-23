@@ -46,6 +46,8 @@
     #management-grid { display: grid; gap: 10px; }
     .text-button { color: var(--brand); margin-top: 16px; }
     .login-action { display: flex; justify-content: center; align-items: center; min-height: 50px; width: 100%; border-radius: 12px; background: #006ee6; color: #fff; font-size: 16px; font-weight: 600; }
+    .login-action.secondary { background: transparent; color: var(--ink); border: 1px solid var(--line); font-weight: 500; }
+    .login-action.secondary:hover { background: var(--hover); }
     .login-action:hover { background: #005ec4; }
     .panel[data-state="anonymous"] { width: 100%; max-width: 440px; margin: clamp(28px, 10vh, 100px) auto 0; padding: 36px 28px; }
     .panel[data-state="anonymous"] .panel-heading { justify-content: center; margin-bottom: 12px; }
@@ -68,6 +70,7 @@
         <div class="panel-heading"><h2 id="management-heading">正在连接</h2><span class="section-note" id="session-badge">正在确认</span></div>
         <p class="session-status" id="session-status" role="status" aria-live="polite">正在确认登录状态…</p>
         <nav id="management-grid" aria-label="管理后台" hidden></nav>
+        <button class="login-action" id="wechat-login" type="button" hidden style="border:0;margin-bottom:12px">微信登录</button>
         <a class="login-action" id="login-link" href="/login?returnTo=%2Fmini.html" hidden>登录</a>
         <button class="text-button" id="session-retry" type="button" hidden>重新检查登录状态</button>
       </section>
@@ -128,11 +131,41 @@
         $("session-status").textContent = text; $("session-badge").textContent = badge;
         $("session-retry").hidden = state === "loading" || state === "anonymous";
         $("login-link").hidden = state !== "anonymous";
+        $("wechat-login").hidden = state !== "anonymous" || !wechatAvailable;
         $("management-grid").hidden = state !== "authenticated";
         $("workbench-intro").hidden = state !== "authenticated";
         $("session-badge").hidden = state === "anonymous";
         $("management-heading").textContent = state === "anonymous" ? "登录工作台" : state === "authenticated" ? "业务管理" : state === "error" ? "暂时无法连接" : "正在连接";
       }
+      let wechatAvailable = false;
+      async function prepareWechat() {
+        let capable = new URLSearchParams(location.search).get('wechatLogin') === '1';
+        try { if (capable) sessionStorage.setItem('comeover-wechat-capable','1'); else capable = sessionStorage.getItem('comeover-wechat-capable') === '1'; } catch {}
+        if (!capable) return;
+        try {
+          const response = await fetch('/auth/wechat/config', { credentials:'same-origin', cache:'no-store' });
+          if (!response.ok || (await response.json()).enabled !== true) return;
+          await new Promise((resolve,reject) => {
+            const script=document.createElement('script'); script.src='https://res.wx.qq.com/open/js/jweixin-1.6.0.js'; script.onload=resolve; script.onerror=reject; document.head.append(script);
+          });
+          wx.miniProgram.getEnv(result => {
+            wechatAvailable = result.miniprogram === true;
+            $('wechat-login').hidden = !wechatAvailable || $('management-panel').dataset.state !== 'anonymous';
+            if (wechatAvailable) { $('login-link').textContent = '账号密码登录'; $('login-link').classList.add('secondary'); }
+          });
+        } catch { /* The original password login remains available. */ }
+      }
+      $('wechat-login').addEventListener('click', async () => {
+        $('wechat-login').disabled = true;
+        try {
+          const response = await fetch('/auth/wechat/flows', {method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:'{}'});
+          const result = await response.json();
+          if (!response.ok || !/^[A-Za-z0-9_-]{43}$/.test(result.flowId)) throw new Error('login-unavailable');
+          await new Promise((resolve,reject) => wx.miniProgram.navigateTo({url:'/pages/wechat-login/wechat-login?flowId='+encodeURIComponent(result.flowId),success:resolve,fail:reject}));
+        } catch { $('session-status').textContent = '微信登录暂不可用，请重试或使用账号密码登录。'; }
+        finally { $('wechat-login').disabled = false; }
+      });
+      prepareWechat();
       let currentRequest = 0;
       let controller;
       async function refreshSession() {
