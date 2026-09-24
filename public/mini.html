@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="light dark">
   <meta name="referrer" content="same-origin">
   <meta name="robots" content="noindex, nofollow">
-  <title>COME OVER · 工作台</title>
+  <title>门店工作台</title>
   <!-- Shared production entry. Visual tokens follow public/admin.html; business pages remain canonical. -->
   <style>
     :root { color-scheme: light; --bg: #f2f2f7; --surface: #fff; --line: rgba(60,60,67,.16); --ink: #1c1c1e; --muted: #6e6e73; --brand: #007aff; --soft: rgba(0,122,255,.08); --hover: #f6f8fc; --focus: rgba(0,122,255,.3); --surface-muted: rgba(255,255,255,.72); --success: #136b38; --success-bg: #e8f5ed; }
@@ -23,8 +23,7 @@
     button { cursor: pointer; }
     a:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
     .page { max-width: 1040px; margin: 0 auto; padding: 28px 24px max(32px, env(safe-area-inset-bottom)); }
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 36px; }
-    .brand { font-size: 17px; font-weight: 800; letter-spacing: .1em; }
+    .topbar { display: flex; align-items: center; justify-content: flex-end; gap: 16px; margin-bottom: 36px; }
     .text-button { border: 1px solid var(--line); border-radius: 10px; min-height: 44px; padding: 9px 13px; background: var(--surface); }
     .topbar-actions { display: flex; align-items: center; gap: 6px; }
     .logout-form { margin: 0; }
@@ -71,13 +70,12 @@
     .panel[data-state="anonymous"] .session-status { text-align: center; line-height: 1.75; margin-bottom: 28px; }
     noscript a { color: var(--brand); text-decoration: underline; }
     @media (max-width: 680px) { .page { padding: 20px 16px max(28px, env(safe-area-inset-bottom)); } .topbar { margin-bottom: 28px; } h1 { font-size: 27px; } .columns { grid-template-columns: 1fr; gap: 16px; } .panel { padding: 20px; } .section-note { font-size: 11px; } }
-    @media (max-width: 350px) { .page { padding-left: 12px; padding-right: 12px; } .panel { padding: 16px; } .entry { padding: 12px; gap: 10px; } .brand { font-size: 15px; } }
+    @media (max-width: 350px) { .page { padding-left: 12px; padding-right: 12px; } .panel { padding: 16px; } .entry { padding: 12px; gap: 10px; } }
   </style>
 </head>
 <body>
-  <main class="page" data-screen-label="COME OVER 工作台">
+  <main class="page" data-screen-label="门店工作台">
     <header class="topbar">
-      <a class="brand" href="/" aria-label="COME OVER 品牌首页">COME OVER</a>
       <div class="topbar-actions">
         <button class="theme-toggle" id="theme-toggle" type="button" aria-label="切换到深色模式" aria-pressed="false"><span class="theme-icon" id="theme-icon" aria-hidden="true">🌙</span></button>
         <form class="logout-form" id="logout-form" method="post" action="/logout" hidden>
