@@ -127,7 +127,7 @@ server = http.createServer((request, response) => {
   checks.push('full account renders all four actual destinations and management entry');
   const storeGrant = accounts.getAccess('full', 'store');
   accounts.putAccess({ ...storeGrant, accountId: 'full', enabled: false }, { actor: 'isolated-fixture', expectedVersion: storeGrant.version });
-  await page.locator('#session-retry').click();
+  await page.reload();
   await page.waitForFunction(() => !document.querySelector('[data-app="store"]') && document.querySelector('#management-panel').dataset.state === 'authenticated');
   assert.equal(Object.keys(await links()).length, 4); checks.push('application revocation removes only the revoked store entry after session refresh');
   // A forged foreign Origin must fail without ending this browser session.

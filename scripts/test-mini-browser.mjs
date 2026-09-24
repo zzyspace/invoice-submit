@@ -51,6 +51,8 @@ if (process.argv.includes("--serve")) {
     checks.push("anonymous shows only login guidance; no business links or business heading");
     await load(session({ store: "/store", expense: "/expense", invoice: "/invoice", staff: "/staff" }, true), "authenticated");
     assert.equal((await links()).length, 5);
+    assert.equal(await page.locator('#session-retry').isVisible(),false);
+    assert.equal(await page.getByRole('button',{name:'退出登录',exact:true}).isVisible(),true);
     assert.equal(await page.locator("#login-link").isVisible(), false);
     await load(session({ expense: "/expense/submit" }), "authenticated");
     assert.deepEqual(await links(), [["expense", "/expense/submit"]]);
@@ -67,6 +69,7 @@ if (process.argv.includes("--serve")) {
     checks.push("unrecognized/external/query destinations rejected; accounts flag required");
     await load({ status: 503, body: { success: false } }, "error");
     assert.deepEqual(await links(), []);
+    assert.equal(await page.getByRole('button',{name:'重新检查登录状态',exact:true}).isVisible(),true);
     gateway = session({ store: "/store" });
     await page.getByRole("button", { name: "重新检查登录状态" }).click();
     await state("authenticated");
@@ -83,24 +86,26 @@ if (process.argv.includes("--serve")) {
     await load({ status: 401, body: { success: false } }, "anonymous");
     const screenshots = process.env.MINI_SCREENSHOT_DIR || await fs.mkdtemp(path.join(os.tmpdir(), "comeover-mini-browser-"));
     await fs.mkdir(screenshots, { recursive: true });
+    await load(session({ store: '/store', expense: '/expense', invoice: '/invoice', staff: '/staff' }, true), 'authenticated');
     for (const width of [320, 390, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false, `horizontal overflow at ${width}`);
       await page.screenshot({ path: path.join(screenshots, `entry-${width}-light.png`), fullPage: true });
     }
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.getByRole("button", { name: "切换深色外观" }).click();
+    await page.getByRole("button", { name: "切换到深色模式" }).click();
     assert.equal(await page.locator("html").getAttribute("data-theme"), "dark");
     await page.screenshot({ path: path.join(screenshots, "entry-390-dark.png"), fullPage: true });
-    await page.reload(); await state("anonymous");
+    await page.reload(); await state("authenticated");
     assert.equal(await page.locator("html").getAttribute("data-theme"), "dark");
     checks.push("320/390/1440 layout; dark appearance and preference persistence");
+    gateway = { status: 401, body: { success: false } };
     const blockedStorage = await browser.newContext({ viewport: { width: 390, height: 844 } });
     await blockedStorage.addInitScript(() => { Object.defineProperty(window, "localStorage", { get() { throw new Error("Storage unavailable"); } }); });
     const blockedPage = await blockedStorage.newPage();
     blockedPage.on("pageerror", (error) => errors.push(error.message));
     await blockedPage.goto(url); await blockedPage.locator('#management-panel[data-state="anonymous"]').waitFor();
-    await blockedPage.getByRole("button", { name: "切换深色外观" }).click();
+    await blockedPage.getByRole("button", { name: "切换到深色模式" }).click();
     assert.equal(await blockedPage.locator("html").getAttribute("data-theme"), "dark");
     await blockedStorage.close();
     checks.push("storage-denied environment still loads and switches appearance");

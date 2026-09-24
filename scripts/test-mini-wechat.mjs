@@ -93,10 +93,7 @@ server = http.createServer((request, response) => {
   assert.equal(await page.evaluate(()=>document.cookie.includes('admin_session=')),false);
   // Submit the same shared logout form used by every business backend.
   assert.ok((await context.cookies()).some(cookie=>cookie.name==='admin_mini_ui' && cookie.value==='wechat-v1'));
-  await page.evaluate(() => {
-    const form=document.createElement('form');form.method='POST';form.action='/logout';
-    const input=document.createElement('input');input.name='returnTo';input.value='/expense/submit';form.append(input);document.body.append(form);form.submit();
-  });
+  await page.getByRole('button',{name:'退出登录',exact:true}).click();
   await page.waitForURL(base+'/mini.html?wechatLogin=1');
   await page.locator('#management-panel[data-state="anonymous"]').waitFor();
   await page.getByRole('button',{name:'微信登录',exact:true}).waitFor();
