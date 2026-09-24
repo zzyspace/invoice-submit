@@ -150,6 +150,11 @@
           });
           wx.miniProgram.getEnv(result => {
             wechatAvailable = result.miniprogram === true;
+            // This host-only session cookie selects the logout screen, not account identity.
+            if (wechatAvailable) {
+              const secure = location.protocol === 'https:';
+              document.cookie = (secure ? '__Host-admin_mini_ui' : 'admin_mini_ui') + '=wechat-v1; Path=/; SameSite=Lax' + (secure ? '; Secure' : '');
+            }
             $('wechat-login').hidden = !wechatAvailable || $('management-panel').dataset.state !== 'anonymous';
             if (wechatAvailable) { $('login-link').textContent = '账号密码登录'; $('login-link').classList.add('secondary'); }
           });

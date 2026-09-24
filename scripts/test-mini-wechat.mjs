@@ -91,6 +91,22 @@ server = http.createServer((request, response) => {
   const sessionCookie=(await context.cookies()).find(cookie=>cookie.name==='admin_session');
   assert.ok(sessionCookie.httpOnly);assert.equal(sessionCookie.sameSite,'Lax');
   assert.equal(await page.evaluate(()=>document.cookie.includes('admin_session=')),false);
+  // Submit the same shared logout form used by every business backend.
+  assert.ok((await context.cookies()).some(cookie=>cookie.name==='admin_mini_ui' && cookie.value==='wechat-v1'));
+  await page.evaluate(() => {
+    const form=document.createElement('form');form.method='POST';form.action='/logout';
+    const input=document.createElement('input');input.name='returnTo';input.value='/expense/submit';form.append(input);document.body.append(form);form.submit();
+  });
+  await page.waitForURL(base+'/mini.html?wechatLogin=1');
+  await page.locator('#management-panel[data-state="anonymous"]').waitFor();
+  await page.getByRole('button',{name:'微信登录',exact:true}).waitFor();
+  assert.equal(await page.getByRole('link',{name:'账号密码登录',exact:true}).isVisible(),true);
+  assert.equal(await page.locator('#management-grid a').count(),0);
+  assert.ok(!(await context.cookies()).some(cookie=>cookie.name==='admin_session'));
+  // Explicitly selecting password login must not bounce back to the chooser.
+  await page.getByRole('link',{name:'账号密码登录',exact:true}).click();
+  await page.waitForURL(base+'/login?returnTo=%2Fmini.html');
+  assert.equal(await page.locator('#password').isVisible(),true);
   await context.clearCookies();
   await page.goto(base+'/mini.html?wechatLogin=1');
   await page.getByRole('button',{name:'微信登录',exact:true}).click();
@@ -103,7 +119,7 @@ server = http.createServer((request, response) => {
   assert.equal(await page.locator('#management-grid a').getAttribute('href'),'/expense/submit');
   await page.screenshot({path:path.join(out,'wechat-binding-browser.png'),fullPage:true});
   assert.deepEqual(errors,[]);
-  console.log(JSON.stringify({passed:true,checks:['new-shell capability and enabled flag show WeChat option','H5 flow Cookie and native code exchange remain separate','real CSRF-protected old password form binds the old account','original HttpOnly Cookie and submit-only permissions preserved'],limitations:['WeChat code exchange and JS-SDK mocked; not native iPhone/Android proof'],outputDirectory:out},null,2));
+  console.log(JSON.stringify({passed:true,checks:['new-shell capability and enabled flag show WeChat option','H5 flow Cookie and native code exchange remain separate','real CSRF-protected old password form binds the old account','original HttpOnly Cookie and submit-only permissions preserved','logout destroys session and displays both login methods; explicit password choice does not redirect back'],limitations:['WeChat code exchange and JS-SDK mocked; not native iPhone/Android proof'],outputDirectory:out},null,2));
 } finally {
   await browser?.close();
   if (server?.listening) await new Promise(resolve => server.close(resolve));
