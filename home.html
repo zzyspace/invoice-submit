@@ -2,11 +2,13 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
     <meta name="theme-color" content="#160f0b" />
     <meta name="description" content="COME OVER — Korean food, tea, wine and a little more time." />
     <title>COME OVER</title>
     <style>
+      /* Allow touch scrolling without page pinch zoom. */
+      html { touch-action: pan-x pan-y; }
       :root {
         color-scheme: dark;
         --paper: #d8cfc1;

@@ -2,13 +2,15 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
   <meta name="color-scheme" content="light dark">
   <meta name="referrer" content="same-origin">
   <meta name="robots" content="noindex, nofollow">
   <title>门店工作台</title>
   <!-- Shared production entry. Visual tokens follow public/admin.html; business pages remain canonical. -->
   <style>
+      /* Allow touch scrolling without page pinch zoom. */
+      html { touch-action: pan-x pan-y; }
     :root { color-scheme: light; --bg: #f2f2f7; --surface: #fff; --line: rgba(60,60,67,.16); --ink: #1c1c1e; --muted: #6e6e73; --brand: #007aff; --soft: rgba(0,122,255,.08); --hover: #f6f8fc; --focus: rgba(0,122,255,.3); --surface-muted: rgba(255,255,255,.72); --success: #136b38; --success-bg: #e8f5ed; }
     @media (prefers-color-scheme: dark) {
       :root:not([data-theme="light"]) { color-scheme: dark; --bg: #0d1117; --surface: #1b222d; --line: rgba(235,242,255,.14); --ink: #f2f5f9; --muted: #aab4c3; --brand: #5aa7ff; --soft: rgba(90,167,255,.12); --hover: #263242; --focus: rgba(90,167,255,.4); --surface-muted: rgba(41,51,66,.82); --success: #79e3a6; --success-bg: #193c2b; }
