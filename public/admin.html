@@ -612,6 +612,42 @@ body > .topbar { height: auto; min-height: 64px; padding-block: 13px; border: 0;
 /* Anchor the menu below the full header, including wrapped mobile rows. */
 body > .topbar > .center-switcher { position: static; }
 body > .topbar .center-switcher-menu { top: calc(100% + 9px); left: auto; }
+/* Current invoice visual language; only filter and pagination layout changes. */
+.controls { padding:14px; margin-bottom:18px; }
+.controls-grid { grid-template-columns:minmax(150px,180px) minmax(200px,1fr) auto; gap:10px; align-items:center; }
+.controls-grid .field { min-width:0; }
+.controls-grid .field label,
+.controls > .status:not(.error) { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
+.controls-grid .field input,
+.controls-grid .field select,
+.controls-grid button { height:40px; min-height:40px; font-size:14px; }
+.controls-grid .field input { width:100%; }
+.controls-grid .field select { width:100%; }
+.controls-grid .query-button { padding:0 20px; }
+.controls > .status.error { margin:12px 0 0; font-size:13px; line-height:1.6; }
+.pagination { justify-content:space-between; align-items:center; gap:14px; padding:14px 18px; }
+.pagination-summary { display:flex; align-items:center; gap:12px; margin-right:auto; font-size:13px; color:var(--ink-soft); flex-wrap:wrap; }
+#summary-range { border-left:1px solid var(--line); padding-left:12px; }
+.page-size { display:flex; align-items:center; gap:8px; white-space:nowrap; font-size:13px; color:var(--ink-soft); }
+.page-size select { min-height:36px; padding:0 8px; border:1px solid var(--line); border-radius:10px; background:var(--surface-input); color:var(--ink); font:inherit; }
+.pagination-buttons { display:flex; gap:8px; }
+.pagination-buttons button { min-height:36px; font-size:13px; padding:0 12px; }
+@media(max-width:640px){
+ .controls { padding:12px; }
+ .controls-grid { grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"store store" "search query"; gap:8px; }
+ .keyword-field { grid-area:search; }
+ .store-field { grid-area:store; }
+ .query-button { grid-area:query; }
+ .controls-grid .field input,.controls-grid .field select,.controls-grid button { height:44px; min-height:44px; }
+ .controls-grid .field input,.controls-grid .field select { font-size:16px; }
+ .controls-grid .query-button { padding:0 18px; }
+ .pagination { flex-wrap:wrap; padding:12px; gap:10px; }
+ .pagination-summary { width:100%; gap:8px; }
+ #summary-range { padding-left:8px; }
+ .page-size { margin-right:auto; }
+ .page-size select { min-height:44px; font-size:16px; }
+ .pagination-buttons button { flex:none; min-height:44px; padding:0 10px; }
+}
 </style>
   </head>
   <body>
@@ -650,50 +686,15 @@ body > .topbar .center-switcher-menu { top: calc(100% + 9px); left: auto; }
         </div>
       </header>
 
-      <section class="panel controls">
+      <section class="panel controls" aria-label="查询筛选">
         <form id="filter-form">
           <div class="controls-grid">
-            <div class="field">
-              <label for="search">关键词</label>
-              <input
-                id="search"
-                name="search"
-                type="search"
-                placeholder="搜索抬头、邮箱、联系方式、税号、备注"
-              />
-            </div>
-
-            <div class="field">
-              <label for="storeKey">门店</label>
-              <select id="storeKey" name="storeKey">
-                <option value="">全部</option>
-                <option value="fuzzy">Fuzzy</option>
-                <option value="peanut">Peanut</option>
-                <option value="fuzzy_qz">Fuzzy泉州店</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="limit">每页数量</label>
-              <select id="limit" name="limit">
-                <option value="20">20</option>
-                <option value="50" selected>50</option>
-                <option value="100">100</option>
-              </select>
-            </div>
-
-            <button class="button-primary" type="submit">查询</button>
-            <button id="refresh-button" type="button">刷新</button>
+            <div class="field store-field"><label for="storeKey">门店</label><select id="storeKey" name="storeKey"><option value="">全部门店</option><option value="fuzzy">Fuzzy</option><option value="peanut">Peanut</option><option value="fuzzy_qz">Fuzzy泉州店</option></select></div>
+            <div class="field keyword-field"><label for="search">关键词</label><input id="search" name="search" type="search" placeholder="搜索抬头、税号、邮箱、备注" /></div>
+            <button class="button-primary query-button" type="submit">查询</button>
           </div>
         </form>
-
-        <div class="meta-row">
-          <div class="summary">
-            <span class="pill" id="summary-count">0 条记录</span>
-            <span class="pill" id="summary-range">0 - 0</span>
-          </div>
-          <div class="status" id="status-text">正在加载...</div>
-        </div>
+        <div class="status" id="status-text" role="status" aria-live="polite">正在加载...</div>
       </section>
 
       <section class="panel table-panel">
@@ -730,8 +731,9 @@ body > .topbar .center-switcher-menu { top: calc(100% + 9px); left: auto; }
         </div>
         <div class="empty" id="empty-state" hidden>暂无符合条件的提交记录。</div>
         <div class="pagination">
-          <button id="prev-button" type="button">上一页</button>
-          <button id="next-button" type="button">下一页</button>
+          <div class="pagination-summary"><span id="summary-count">0 条记录</span><span id="summary-range">0 - 0</span></div>
+          <label class="page-size" for="limit"><span>每页</span><select id="limit" name="limit" form="filter-form"><option value="20">20</option><option value="50" selected>50</option><option value="100">100</option></select></label>
+          <div class="pagination-buttons"><button id="prev-button" type="button">上一页</button><button id="next-button" type="button">下一页</button></div>
         </div>
       </section>
     </main>
@@ -761,7 +763,6 @@ body > .topbar .center-switcher-menu { top: calc(100% + 9px); left: auto; }
     <script>
       const THEME_STORAGE_KEY = "comeover-admin-theme";
       const form = document.getElementById("filter-form");
-      const refreshButton = document.getElementById("refresh-button");
       const prevButton = document.getElementById("prev-button");
       const nextButton = document.getElementById("next-button");
       const recordsBody = document.getElementById("records-body");
@@ -1281,8 +1282,8 @@ body > .topbar .center-switcher-menu { top: calc(100% + 9px); left: auto; }
         loadRecords();
       });
 
-      refreshButton.addEventListener("click", () => {
-        loadRecords();
+      document.getElementById("limit").addEventListener("change", () => {
+        form.requestSubmit();
       });
 
       prevButton.addEventListener("click", () => {
