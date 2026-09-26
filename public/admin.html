@@ -607,10 +607,11 @@
 .center-switcher-trigger:disabled { opacity: 1; color: inherit; cursor: default; }
 .center-switcher-option[data-center="store"] svg { color: #e85d8e; }
 :root[data-theme="dark"] .center-switcher-option[data-center="store"] svg { color: #f486ad; }
+/* Full-width header; keep all existing control styles. */
+body > .topbar { height: auto; min-height: 64px; padding-block: 13px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; box-shadow: none; }
 </style>
   </head>
   <body>
-    <main class="page">
       <nav class="topbar" aria-label="发票中心导航">
         <div class="center-switcher" id="center-switcher" hidden>
           <button class="center-switcher-trigger" id="center-switcher-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="center-switcher-menu" disabled>
@@ -637,6 +638,7 @@
         </div>
       </nav>
       <button class="center-switcher-backdrop" id="center-switcher-backdrop" type="button" aria-label="关闭后台选择列表" hidden></button>
+    <main class="page">
 
       <header class="hero">
         <div class="hero-copy">
