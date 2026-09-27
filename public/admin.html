@@ -648,6 +648,69 @@ body > .topbar .center-switcher-menu { top: calc(100% + 9px); left: auto; }
  .page-size select { min-height:44px; font-size:16px; }
  .pagination-buttons button { flex:none; min-height:44px; padding:0 10px; }
 }
+/* Mobile submission cards; the desktop table keeps its existing layout. */
+.mobile-records { display:none; }
+.entry button, .entry a { touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+.entry button { user-select:none; -webkit-user-select:none; }
+@media(max-width:640px) {
+ .table-scroll { display:none; }
+ .table-panel { background:transparent; border:0; box-shadow:none; border-radius:0; backdrop-filter:none; overflow:visible; }
+ .mobile-records { display:grid; gap:12px; }
+ .entry { min-width:0; border:1px solid var(--line); border-radius:20px; background:var(--surface-strong); box-shadow:0 3px 12px rgba(28,28,30,.035); overflow:hidden; }
+ .entry-content { padding:15px 16px 10px; }
+ .entry-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+ .entry-head .tag { min-height:23px; padding:0 8px; border-radius:7px; font-size:11px; line-height:1.5; }
+ .entry time { color:var(--ink-soft); font-size:12px; line-height:1.5; white-space:nowrap; font-variant-numeric:tabular-nums; }
+ .entry-title { margin:0 0 10px; display:flex; align-items:flex-start; gap:8px; }
+ .entry-title h2 { margin:0; font-size:17px; font-weight:650; line-height:1.5; letter-spacing:-.025em; overflow-wrap:anywhere; flex:1; min-width:0; }
+ .entry-title .tag-type { flex:none; margin-top:2px; background:transparent; border:1px solid var(--line); color:var(--ink-soft); min-height:23px; padding:0 6px; border-radius:6px; font-size:11px; }
+ .entry-fields { display:grid; gap:5px; margin:0; }
+ .entry-field { display:grid; grid-template-columns:32px minmax(0,1fr); gap:10px; align-items:baseline; font-size:13px; line-height:1.6; }
+ .entry-field dt { color:var(--ink-soft); font-size:12px; }
+ .entry-field dd { margin:0; min-width:0; overflow-wrap:anywhere; }
+ .entry-tax { font-family:"SF Mono",Menlo,Consolas,monospace; font-size:12px; letter-spacing:0; }
+ .entry-note { display:flex; align-items:baseline; gap:9px; min-width:0; margin:12px 0 2px; padding:10px 11px; border:1px solid rgba(255,149,0,.2); border-radius:10px; background:rgba(255,149,0,.09); font-size:13px; font-weight:500; line-height:1.7; color:var(--ink); }
+ .entry-note > span:first-child { flex:none; font-size:11px; font-weight:700; color:#965000; }
+ .entry-note > span:last-child { min-width:0; overflow:hidden; overflow-wrap:anywhere; white-space:pre-wrap; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+ :root[data-theme="dark"] .entry-note { background:rgba(255,179,64,.1); border-color:rgba(255,179,64,.22); }
+ :root[data-theme="dark"] .entry-note > span:first-child { color:#ffc268; }
+ .entry-footer { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:center; border-top:1px solid var(--line); margin:0 16px; padding:3px 0; }
+ .entry-attachment { display:inline-flex; align-items:center; gap:7px; min-height:44px; min-width:44px; padding:0 4px; margin-left:-4px; color:var(--brand); text-decoration:none; font-size:13px; font-weight:600; border-radius:8px; width:max-content; }
+ .entry-attachment svg { width:16px; height:16px; flex:none; }
+ .entry-type-hint { color:var(--ink-soft); font-size:10px; font-weight:500; margin-left:1px; }
+ .entry-toggle { min-height:44px; min-width:76px; display:flex; align-items:center; justify-content:flex-end; gap:7px; border:0; padding:0 0 0 12px; border-radius:8px; background:transparent; color:var(--ink-soft); font-weight:500; font-size:13px; }
+ .entry-chevron { width:7px; height:7px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(45deg) translateY(-2px); margin-right:3px; transition:transform .16s ease-out; }
+ .entry-toggle[aria-expanded="true"] .entry-chevron { transform:rotate(225deg) translate(-1px,-1px); }
+ .entry-details { padding:14px 16px 12px; background:var(--bg); border-top:1px solid var(--line); }
+ .entry-details dl { display:grid; gap:10px; margin:0; }
+ .entry-details .entry-field { grid-template-columns:58px minmax(0,1fr); }
+ .entry-details .entry-field dd { white-space:pre-wrap; }
+ .entry-details .entry-delete { display:block; margin:14px 0 0 auto; min-height:44px; padding:0 12px; font-size:12px; background:transparent; border-color:var(--line); }
+ .entry-permission { color:var(--ink-soft); font-size:12px; min-height:44px; display:flex; align-items:center; }
+ .table-panel .pagination { margin-top:12px; border:1px solid var(--line); background:var(--surface); border-radius:18px; }
+ .table-panel .empty { padding:40px 18px; border:1px solid var(--line); border-radius:20px; background:var(--surface); }
+ .entry-toggle:active,.entry-attachment:active { opacity:.55; }
+ .entry :focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
+ .preview-modal { padding:12px; padding-bottom:calc(12px + env(safe-area-inset-bottom,0px)); }
+ .preview-dialog { max-height:calc(100dvh - 24px); }
+ .preview-header { flex-direction:row; align-items:flex-start; gap:10px; padding:16px; }
+ .preview-header > div { min-width:0; overflow-wrap:anywhere; }
+ .preview-header h2 { font-size:17px; line-height:1.5; }
+ .preview-header button { min-height:44px; padding:0 12px; flex:none; }
+ .preview-body { min-height:40dvh; }
+ .preview-image,.preview-frame { height:55dvh; max-height:55dvh; }
+ .page { padding-bottom:calc(32px + env(safe-area-inset-bottom,0px)); }
+ :root[data-theme="dark"] .tag-store-fuzzy { color:#78d991; }
+ :root[data-theme="dark"] .tag-store-peanut { color:#79b8ff; }
+ :root[data-theme="dark"] .tag-store-fuzzy-qz { color:#c89de8; }
+}
+@media(hover:hover) and (pointer:fine) {
+ .entry-attachment:hover { background:var(--brand-soft); }
+ .entry-toggle:hover { color:var(--brand); }
+}
+@media(prefers-reduced-motion:reduce) { .entry-chevron { transition:none; } }
+/* Keep touch taps quiet while preserving keyboard focus indication. */
+.entry button:focus:not(:focus-visible) { outline:none; }
 </style>
   </head>
   <body>
@@ -698,6 +761,7 @@ body > .topbar .center-switcher-menu { top: calc(100% + 9px); left: auto; }
       </section>
 
       <section class="panel table-panel">
+        <div id="mobile-records" class="mobile-records" role="list" aria-label="提交记录"></div>
         <div class="table-scroll">
           <table>
             <colgroup>
@@ -766,6 +830,7 @@ body > .topbar .center-switcher-menu { top: calc(100% + 9px); left: auto; }
       const prevButton = document.getElementById("prev-button");
       const nextButton = document.getElementById("next-button");
       const recordsBody = document.getElementById("records-body");
+      const mobileRecords = document.getElementById("mobile-records");
       const emptyState = document.getElementById("empty-state");
       const statusText = document.getElementById("status-text");
       const summaryCount = document.getElementById("summary-count");
@@ -1079,7 +1144,109 @@ body > .topbar .center-switcher-menu { top: calc(100% + 9px); left: auto; }
         }
       }
 
+      const expandedEntries = new Set();
+      function entryElement(tag, className, text) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text != null) node.textContent = text;
+        return node;
+      }
+      function entryField(label, value, className) {
+        const row = entryElement("div", "entry-field");
+        row.append(entryElement("dt", "", label), entryElement("dd", className || "", value || "未填写"));
+        return row;
+      }
+      function renderMobileRows(items) {
+        const list = mobileRecords;
+        const visibleIds = new Set(items.map((item) => item.id));
+        for (const id of expandedEntries) {
+          if (!visibleIds.has(id)) expandedEntries.delete(id);
+        }
+        list.replaceChildren();
+        for (const item of items) {
+          const card = entryElement("article", "entry");
+          card.dataset.id = item.id;
+          card.setAttribute("role", "listitem");
+          card.setAttribute("aria-label", item.invoice_title || "未填写抬头");
+          const content = entryElement("div", "entry-content");
+          const head = entryElement("div", "entry-head");
+          const date = new Date(item.created_at);
+          const validDate = Boolean(item.created_at) && !Number.isNaN(date.getTime());
+          const dateLabel = validDate
+            ? date.toLocaleString("zh-CN", {
+                month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false,
+              }).replaceAll("/", "-")
+            : formatDisplayValue(item.created_at);
+          const time = entryElement("time", "", dateLabel);
+          if (validDate) time.dateTime = date.toISOString();
+          time.title = formatDate(item.created_at);
+          head.append(createStoreTag(item.store_key), time);
+          const title = entryElement("div", "entry-title");
+          title.append(entryElement("h2", "", item.invoice_title || "未填写抬头"), createTypeTag(item.invoice_type));
+          const fields = entryElement("dl", "entry-fields");
+          fields.append(entryField("税号", item.tax_number || (item.invoice_type === "personal" ? "未填写（个人）" : "未填写"), "entry-tax"), entryField("邮箱", item.email));
+          content.append(head,title,fields);
+          if (item.note) {
+            const note = entryElement("p", "entry-note");
+            note.append(entryElement("span", "", "备注"), entryElement("span", "", item.note));
+            content.append(note);
+          }
+          const footer = entryElement("div", "entry-footer");
+          if (can("attachment:view")) {
+            const attachment = entryElement("a", "entry-attachment");
+            attachment.href = `/invoice/api/admin/submissions/${encodeURIComponent(item.id)}/attachment`;
+            attachment.dataset.action = "preview-attachment";
+            attachment.dataset.contentType = item.attachment_content_type || "";
+            attachment.dataset.attachmentName = item.attachment_name || "付款凭证";
+            attachment.dataset.attachmentMeta = [item.attachment_content_type, formatBytes(item.attachment_size_bytes)].filter(Boolean).join(" · ");
+            attachment.setAttribute("aria-label", `预览 ${item.invoice_title} 的付款凭证`);
+            attachment.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6M8 13h8M8 17h5"></path></svg>';
+            attachment.append(entryElement("span", "", "付款凭证"),entryElement("span", "entry-type-hint", item.attachment_content_type === "application/pdf" ? "PDF" : (item.attachment_content_type || "").startsWith("image/") ? "图片" : "附件"));
+            footer.append(attachment);
+          } else footer.append(entryElement("span", "entry-permission", "无附件权限"));
+          const toggle = entryElement("button", "entry-toggle");
+          const expanded = expandedEntries.has(item.id);
+          toggle.type = "button";
+          toggle.dataset.action = "entry-details";
+          toggle.dataset.id = item.id;
+          toggle.setAttribute("aria-expanded", String(expanded));
+          toggle.setAttribute("aria-controls", "details-" + item.id);
+          toggle.append(entryElement("span", "entry-toggle-label", expanded ? "收起" : "详情"), entryElement("span", "entry-chevron"));
+          footer.append(toggle);
+          const details = entryElement("div", "entry-details");
+          details.id = "details-" + item.id;
+          details.hidden = !expanded;
+          const detailFields = entryElement("dl");
+          detailFields.append(entryField("提交 ID", formatDisplayValue(item.submit_id), "entry-tax"),entryField("提交时间", formatDate(item.created_at)),entryField("联系方式", item.contact),entryField("完整备注", item.note || "无备注"));
+          if (can("attachment:view")) {
+            detailFields.append(
+              entryField("附件名称", item.attachment_name),
+              entryField("文件大小", formatBytes(item.attachment_size_bytes))
+            );
+          }
+          details.append(detailFields);
+          if (can("submission:delete")) {
+            const del = entryElement("button", "button-danger entry-delete", state.deletingIds.has(item.id) ? "删除中…" : "删除这条记录");
+            del.type="button"; del.dataset.action="delete"; del.dataset.submissionId=item.id;
+            del.disabled=state.loading || state.deletingIds.has(item.id);
+            details.append(del);
+          }
+          card.append(content,footer,details);
+          list.append(card);
+        }
+      }
+      mobileRecords.addEventListener("click", (event) => {
+        const trigger=event.target.closest('[data-action="entry-details"]');
+        if (!trigger) return;
+        const expanded=trigger.getAttribute("aria-expanded") !== "true";
+        trigger.setAttribute("aria-expanded",String(expanded));
+        trigger.querySelector(".entry-toggle-label").textContent=expanded ? "收起" : "详情";
+        document.getElementById(trigger.getAttribute("aria-controls")).hidden=!expanded;
+        if(expanded) expandedEntries.add(trigger.dataset.id); else expandedEntries.delete(trigger.dataset.id);
+      });
+
       function renderRows(items) {
+        renderMobileRows(items);
         recordsBody.textContent = "";
 
         for (const item of items) {
@@ -1170,7 +1337,15 @@ body > .topbar .center-switcher-menu { top: calc(100% + 9px); left: auto; }
             if (option.value && option.value !== "all") option.disabled = payload.stores !== "all" && !payload.stores.includes(option.value);
           }
           return true;
-        } catch (error) { grantedPermissions.clear(); recordsBody.textContent = ""; setStatus(error.message, true); return false; }
+        } catch (error) {
+          grantedPermissions.clear();
+          state.items = [];
+          state.total = 0;
+          renderRows([]);
+          updateSummary();
+          setStatus(error.message, true);
+          return false;
+        }
       }
       async function loadRecords() {
         if (!(await loadPermissions())) return;
@@ -1296,11 +1471,12 @@ body > .topbar .center-switcher-menu { top: calc(100% + 9px); left: auto; }
         loadRecords();
       });
 
-      recordsBody.addEventListener("click", (event) => {
+      document.querySelector(".table-panel").addEventListener("click", (event) => {
         const attachmentLink = event.target.closest('a[data-action="preview-attachment"]');
 
         if (attachmentLink) {
           event.preventDefault();
+          if (!can("attachment:view")) return;
           openAttachmentPreview({
             url: attachmentLink.href,
             name: attachmentLink.dataset.attachmentName || attachmentLink.textContent || "附件预览",
