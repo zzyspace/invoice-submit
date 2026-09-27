@@ -396,13 +396,15 @@
       }
 
       .tag-type-enterprise {
-        background: rgba(0, 122, 255, 0.14);
-        color: var(--brand);
+        background: rgba(0, 122, 255, 0.12);
+        border-color: rgba(0, 122, 255, 0.22);
+        color: #0064d9;
       }
 
       .tag-type-personal {
-        background: rgba(255, 149, 0, 0.16);
-        color: #c96f00;
+        background: rgba(255, 149, 0, 0.14);
+        border-color: rgba(255, 149, 0, 0.24);
+        color: #965000;
       }
 
       .tag-type-neutral {
@@ -648,7 +650,7 @@ body > .topbar .center-switcher-menu { top: calc(100% + 9px); left: auto; }
  .page-size select { min-height:44px; font-size:16px; }
  .pagination-buttons button { flex:none; min-height:44px; padding:0 10px; }
 }
-/* Mobile submission cards; the desktop table keeps its existing layout. */
+/* Mobile submission cards. */
 .mobile-records { display:none; }
 .entry button, .entry a { touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
 .entry button { user-select:none; -webkit-user-select:none; }
@@ -663,7 +665,7 @@ body > .topbar .center-switcher-menu { top: calc(100% + 9px); left: auto; }
  .entry time { color:var(--ink-soft); font-size:12px; line-height:1.5; white-space:nowrap; font-variant-numeric:tabular-nums; }
  .entry-title { margin:0 0 10px; display:flex; align-items:flex-start; gap:8px; }
  .entry-title h2 { margin:0; font-size:17px; font-weight:650; line-height:1.5; letter-spacing:-.025em; overflow-wrap:anywhere; flex:1; min-width:0; }
- .entry-title .tag-type { flex:none; margin-top:2px; background:transparent; border:1px solid var(--line); color:var(--ink-soft); min-height:23px; padding:0 6px; border-radius:6px; font-size:11px; }
+ .entry-title .tag-type { flex:none; margin-top:2px; min-height:23px; padding:0 6px; border-radius:6px; font-size:11px; }
  .entry-fields { display:grid; gap:5px; margin:0; }
  .entry-field { display:grid; grid-template-columns:32px minmax(0,1fr); gap:10px; align-items:baseline; font-size:13px; line-height:1.6; }
  .entry-field dt { color:var(--ink-soft); font-size:12px; }
@@ -711,6 +713,93 @@ body > .topbar .center-switcher-menu { top: calc(100% + 9px); left: auto; }
 @media(prefers-reduced-motion:reduce) { .entry-chevron { transition:none; } }
 /* Keep touch taps quiet while preserving keyboard focus indication. */
 .entry button:focus:not(:focus-visible) { outline:none; }
+/* Compact desktop entries, matching the approved B design. */
+@media(min-width:641px) {
+ .table-panel { border-radius:22px; }
+ .desktop-title { display:flex; align-items:baseline; flex-wrap:wrap; gap:7px; margin-bottom:9px; }
+ .desktop-title h2 { margin:0; font-size:16px; line-height:1.6; letter-spacing:-.02em; font-weight:650; overflow-wrap:anywhere; }
+ .desktop-title .tag-type { min-height:22px; padding:0 6px; font-size:11px; border-radius:6px; }
+ .desktop-tax { display:flex; align-items:baseline; gap:8px; min-width:0; margin:0 0 12px; }
+ .desktop-label { color:var(--ink-soft); font-size:11px; font-weight:400; flex:none; }
+ .desktop-tax-value { font-family:"SF Mono",Menlo,Consolas,monospace; font-size:12px; line-height:1.6; overflow-wrap:anywhere; }
+ .desktop-meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; color:var(--ink-soft); font-size:11px; line-height:1.6; font-variant-numeric:tabular-nums; }
+ .desktop-meta .tag { min-height:21px; border-radius:6px; padding:0 6px; font-size:10px; }
+ .desktop-email { font-size:14px; line-height:1.8; font-weight:500; overflow-wrap:anywhere; margin:0 0 11px; }
+ .desktop-contact { display:flex; align-items:baseline; gap:8px; font-size:12px; line-height:1.8; overflow-wrap:anywhere; }
+ .desktop-contact-value { min-width:0; }
+ .desktop-note { margin:0; padding:10px 12px; background:rgba(255,149,0,.09); border:1px solid rgba(255,149,0,.2); border-radius:10px; font-size:13px; font-weight:500; line-height:1.8; color:var(--ink); }
+ .desktop-note-text { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; white-space:pre-wrap; overflow-wrap:anywhere; }
+ .desktop-note-empty { margin:4px 0; color:var(--ink-soft); font-size:12px; line-height:1.8; }
+ :root[data-theme="dark"] .desktop-note { background:rgba(255,179,64,.1); border-color:rgba(255,179,64,.22); }
+ .desktop-attachment { display:flex; align-items:center; justify-content:center; gap:7px; min-height:38px; padding:0 10px; border:1px solid rgba(0,122,255,.13); border-radius:9px; background:var(--brand-soft); color:var(--brand); font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap; }
+ .desktop-attachment svg { width:15px; height:15px; }
+ .desktop-toggle { display:flex; align-items:center; justify-content:center; gap:7px; min-height:34px; padding:0 10px; background:transparent; border:1px solid transparent; font-size:12px; font-weight:500; color:var(--ink-soft); border-radius:9px; }
+ .desktop-chevron { display:block; width:6px; height:6px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(45deg) translateY(-2px); transition:transform .15s ease-out; }
+ .desktop-toggle[aria-expanded="true"] { color:var(--brand); }
+ .desktop-toggle[aria-expanded="true"] .desktop-chevron { transform:rotate(225deg); }
+ .desktop-unavailable { text-align:center; font-size:11px; line-height:38px; color:var(--ink-soft); }
+ .desktop-detail { padding:20px 24px; background:var(--bg); border-top:1px solid var(--line); }
+ .desktop-detail-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:15px; }
+ .desktop-detail-heading h3 { font-size:13px; font-weight:600; margin:0; }
+ .desktop-detail dl { margin:0; display:grid; grid-template-columns:1fr 1fr; gap:15px 36px; }
+ .desktop-detail .entry-field { display:grid; grid-template-columns:70px minmax(0,1fr); gap:12px; font-size:13px; line-height:1.8; }
+ .desktop-detail dt { color:var(--ink-soft); font-size:12px; }
+ .desktop-detail dd { margin:0; overflow-wrap:anywhere; white-space:pre-wrap; }
+ .desktop-detail .full-note { grid-column:1/-1; padding-top:15px; border-top:1px solid var(--line); }
+ .desktop-detail .full-note dd { font-weight:500; }
+ .desktop-detail .button-danger { min-height:34px; font-size:11px; padding:0 12px; background:transparent; border-color:var(--line); }
+ .desktop-detail-heading > button { flex:none; }
+}
+@media(min-width:641px) and (max-width:860px) { .desktop-detail dl { grid-template-columns:1fr; } }
+@media(hover:hover) and (pointer:fine) { .desktop-attachment:hover,.desktop-toggle:hover { color:var(--brand); background:var(--brand-soft); } }
+@media(prefers-reduced-motion:reduce) { .desktop-chevron { transition:none; } }
+/* Same data and workflows; a genuinely denser seven-column table. */
+@media(min-width:641px){
+ .compact-table { min-width:0; width:100%; border-collapse:collapse; table-layout:fixed; }
+ .compact-table .c-store { width:9%; }.compact-table .c-time { width:11%; }.compact-table .c-invoice { width:24%; }.compact-table .c-recipient { width:20%; }.compact-table .c-note { width:22%; }.compact-table .c-attachment { width:8%; }.compact-table .c-action { width:6%; }
+ .compact-table th { padding:14px 12px; text-transform:none; font-weight:600; letter-spacing:.015em; font-size:11px; }
+ .compact-table th:first-child,.compact-table td:first-child { padding-left:20px; }
+ .compact-table th:last-child,.compact-table td:last-child { padding-right:16px; }
+ .compact-table td { padding:13px 12px; vertical-align:top; font-size:12px; }
+ .compact-table .desktop-meta { display:flex; flex-direction:column; align-items:flex-start; gap:4px; font-size:11px; }
+ .compact-table .desktop-meta .tag { min-height:20px; font-size:10px; }
+ .compact-submitted-at { display:flex; flex-direction:column; gap:3px; font-size:11px; line-height:1.7; font-variant-numeric:tabular-nums; white-space:nowrap; }
+ .compact-clock { color:var(--ink-soft); }
+ .compact-table .desktop-title { gap:6px; margin-bottom:5px; }
+ .compact-table .desktop-title h2 { font-size:13px; font-weight:600; line-height:1.7; }
+ .compact-table .desktop-title .tag-type { font-size:10px; min-height:19px; }
+ .compact-table .desktop-tax { margin:0; gap:6px; }
+ .compact-table .desktop-tax-value { font-size:11px; }
+ .compact-table .desktop-label { font-size:10px; }
+ .compact-table .desktop-email { font-size:12px; margin:0 0 6px; font-weight:400; }
+ .compact-table .desktop-contact { font-size:11px; gap:6px; }
+ .compact-table .desktop-note { padding:6px 8px; border-radius:7px; font-size:12px; line-height:1.7; }
+ .compact-table .desktop-note-text { -webkit-line-clamp:2; }
+ .compact-table .desktop-note-empty { font-size:11px; }
+ .compact-table .desktop-attachment { min-height:32px; padding:0; border:0; background:transparent; font-size:12px; justify-content:flex-start; gap:4px; }
+ .compact-table .desktop-attachment svg { width:14px; height:14px; }
+ .compact-table .desktop-toggle { min-height:32px; padding:0; gap:6px; justify-content:flex-start; font-size:12px; white-space:nowrap; }
+ .compact-table .desktop-detail { padding:18px 20px; border-top:0; }
+ .compact-table .compact-detail-row > td { padding:0; }
+ .compact-table .desktop-detail-heading .button-danger { min-height:34px; }
+ .compact-table .desktop-detail .entry-field { font-size:13px; }
+ .compact-table .desktop-unavailable { font-size:10px; line-height:1.5; display:block; }
+ .compact-table .compact-entry:has(.desktop-toggle[aria-expanded="true"]) { background:var(--brand-soft); }
+ .compact-table button:focus:not(:focus-visible) { outline:none; }
+ .compact-table :focus-visible { outline:2px solid var(--brand); outline-offset:3px; }
+}
+@media(min-width:641px) and (max-width:1024px){
+ .compact-table th,.compact-table td { padding-left:8px; padding-right:8px; }
+ .compact-table th:first-child,.compact-table td:first-child { padding-left:12px; }
+ .compact-table .c-store { width:11%; }.compact-table .c-time { width:12%; }.compact-table .c-invoice { width:22%; }.compact-table .c-recipient { width:19%; }.compact-table .c-note { width:19%; }.compact-table .c-attachment { width:9%; }.compact-table .c-action { width:8%; }
+ .compact-table .desktop-tax { flex-wrap:wrap; gap:2px 6px; }
+}
+@media(pointer:coarse){.compact-table .desktop-attachment,.compact-table .desktop-toggle{min-height:44px}}
+
+/* Type colors are shared by desktop rows and mobile cards. */
+:root[data-theme="dark"] .tag-type-enterprise { background:rgba(90,167,255,.18); border-color:rgba(90,167,255,.3); color:#8fc0ff; }
+:root[data-theme="dark"] .tag-type-personal { background:rgba(255,179,64,.18); border-color:rgba(255,179,64,.3); color:#ffc268; }
+.compact-table a,.compact-table button { touch-action:manipulation; }
 </style>
   </head>
   <body>
@@ -763,31 +852,25 @@ body > .topbar .center-switcher-menu { top: calc(100% + 9px); left: auto; }
       <section class="panel table-panel">
         <div id="mobile-records" class="mobile-records" role="list" aria-label="提交记录"></div>
         <div class="table-scroll">
-          <table>
+          <table class="compact-table" aria-label="发票提交记录">
             <colgroup>
-              <col class="col-submit-id" />
-              <col />
-              <col />
-              <col />
-              <col />
-              <col />
-              <col class="col-attachment" />
-              <col class="col-note" />
-              <col />
-              <col />
+              <col class="c-store" />
+              <col class="c-time" />
+              <col class="c-invoice" />
+              <col class="c-recipient" />
+              <col class="c-note" />
+              <col class="c-attachment" />
+              <col class="c-action" />
             </colgroup>
             <thead>
               <tr>
-                <th>提交ID</th>
-                <th>提交时间</th>
-                <th>门店</th>
-                <th>抬头 / 类型</th>
-                <th>税号</th>
-                <th>邮箱</th>
-                <th>附件</th>
-                <th>备注</th>
-                <th>联系方式</th>
-                <th>操作</th>
+                <th scope="col">门店</th>
+                <th scope="col">提交时间</th>
+                <th scope="col">抬头 / 税号</th>
+                <th scope="col">接收信息</th>
+                <th scope="col">备注</th>
+                <th scope="col">附件</th>
+                <th scope="col">操作</th>
               </tr>
             </thead>
             <tbody id="records-body"></tbody>
@@ -1245,72 +1328,133 @@ body > .topbar .center-switcher-menu { top: calc(100% + 9px); left: auto; }
         if(expanded) expandedEntries.add(trigger.dataset.id); else expandedEntries.delete(trigger.dataset.id);
       });
 
+      const desktopExpanded = new Set();
+
+      function createDesktopAttachment(item) {
+        if (!can("attachment:view")) return entryElement("span", "desktop-unavailable", "无附件权限");
+        const link = entryElement("a", "desktop-attachment");
+        link.href = `/invoice/api/admin/submissions/${encodeURIComponent(item.id)}/attachment`;
+        Object.assign(link.dataset, {
+          action: "preview-attachment",
+          contentType: item.attachment_content_type || "",
+          attachmentName: item.attachment_name || "付款凭证",
+          attachmentMeta: [item.attachment_content_type, formatBytes(item.attachment_size_bytes)].filter(Boolean).join(" · "),
+        });
+        link.setAttribute("aria-label", `预览 ${item.invoice_title || "此条记录"} 的付款凭证`);
+        link.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6M8 13h8M8 17h5"></path></svg>';
+        link.append(entryElement("span", "", "凭证"));
+        return link;
+      }
+
+      function createDesktopDetails(item) {
+        const detail = entryElement("div", "desktop-detail");
+        detail.id = `desktop-detail-${item.id}`;
+        detail.hidden = !desktopExpanded.has(item.id);
+        const heading = entryElement("div", "desktop-detail-heading");
+        heading.append(entryElement("h3", "", "提交详情"));
+        if (can("submission:delete")) {
+          const button = entryElement("button", "button-danger", state.deletingIds.has(item.id) ? "删除中…" : "删除这条记录");
+          button.type = "button";
+          button.dataset.action = "delete";
+          button.dataset.submissionId = item.id;
+          button.disabled = state.loading || state.deletingIds.has(item.id);
+          heading.append(button);
+        }
+        const fields = entryElement("dl");
+        fields.append(
+          entryField("抬头", item.invoice_title),
+          entryField("提交时间", formatDate(item.created_at)),
+          entryField("税号", item.tax_number),
+          entryField("门店", storeLabels[item.store_key] || item.store_key),
+          entryField("邮箱", item.email),
+          entryField("联系方式", item.contact)
+        );
+        if (can("attachment:view")) {
+          fields.append(entryField("附件名称", item.attachment_name), entryField("文件大小", formatBytes(item.attachment_size_bytes)));
+        }
+        const note = entryField("完整备注", item.note || "无备注");
+        note.classList.add("full-note");
+        fields.append(note);
+        detail.append(heading, fields);
+        return detail;
+      }
+
+      function renderDesktopRows(items) {
+        const visibleIds = new Set(items.map((item) => item.id));
+        for (const id of desktopExpanded) {
+          if (!visibleIds.has(id)) desktopExpanded.delete(id);
+        }
+        recordsBody.replaceChildren();
+        for (const item of items) {
+          const row = entryElement("tr", "compact-entry");
+          row.dataset.id = item.id;
+          const store = entryElement("div", "desktop-meta");
+          store.append(createStoreTag(item.store_key));
+          const date = new Date(item.created_at);
+          const submittedAt = entryElement("time", "compact-submitted-at");
+          submittedAt.title = formatDate(item.created_at);
+          if (item.created_at && !Number.isNaN(date.getTime())) {
+            submittedAt.dateTime = date.toISOString();
+            submittedAt.append(
+              entryElement("span", "compact-date", date.toLocaleDateString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit" }).replaceAll("/", "-")),
+              entryElement("span", "compact-clock", date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }))
+            );
+          } else submittedAt.textContent = formatDisplayValue(item.created_at);
+
+          const invoice = entryElement("div", "desktop-invoice");
+          const title = entryElement("div", "desktop-title");
+          title.append(entryElement("h2", "", item.invoice_title || "未填写抬头"), createTypeTag(item.invoice_type));
+          const tax = entryElement("p", "desktop-tax");
+          tax.append(entryElement("span", "desktop-label", "税号"), entryElement("span", "desktop-tax-value", item.tax_number || "未填写"));
+          invoice.append(title, tax);
+
+          const recipient = entryElement("div", "desktop-recipient");
+          const contact = entryElement("div", "desktop-contact");
+          contact.append(entryElement("span", "desktop-label", "联系"), entryElement("span", "desktop-contact-value", item.contact || "未填写"));
+          recipient.append(entryElement("p", "desktop-email", item.email || "未填写"), contact);
+          const remark = entryElement("div", "desktop-remark");
+          if (item.note) {
+            const note = entryElement("p", "desktop-note");
+            note.append(entryElement("span", "desktop-note-text", item.note));
+            remark.append(note);
+          } else remark.append(entryElement("p", "desktop-note-empty", "无备注"));
+
+          const toggle = entryElement("button", "desktop-toggle");
+          toggle.type = "button";
+          toggle.dataset.action = "desktop-details";
+          toggle.dataset.id = item.id;
+          toggle.setAttribute("aria-expanded", String(desktopExpanded.has(item.id)));
+          toggle.setAttribute("aria-controls", `desktop-detail-${item.id}`);
+          toggle.append(entryElement("span", "desktop-toggle-label", desktopExpanded.has(item.id) ? "收起" : "详情"), entryElement("span", "desktop-chevron"));
+          for (const node of [store, submittedAt, invoice, recipient, remark, createDesktopAttachment(item), toggle]) {
+            row.append(createCell(node));
+          }
+          const detail = createDesktopDetails(item);
+          const detailRow = entryElement("tr", "compact-detail-row");
+          detailRow.hidden = detail.hidden;
+          const detailCell = createCell(detail);
+          detailCell.colSpan = 7;
+          detailRow.append(detailCell);
+          recordsBody.append(row, detailRow);
+        }
+      }
+
+      recordsBody.addEventListener("click", (event) => {
+        const toggle = event.target.closest('[data-action="desktop-details"]');
+        if (!toggle) return;
+        const expanded = toggle.getAttribute("aria-expanded") !== "true";
+        toggle.setAttribute("aria-expanded", String(expanded));
+        toggle.querySelector(".desktop-toggle-label").textContent = expanded ? "收起" : "详情";
+        const detail = document.getElementById(toggle.getAttribute("aria-controls"));
+        detail.hidden = !expanded;
+        detail.closest(".compact-detail-row").hidden = !expanded;
+        if (expanded) desktopExpanded.add(toggle.dataset.id);
+        else desktopExpanded.delete(toggle.dataset.id);
+      });
+
       function renderRows(items) {
         renderMobileRows(items);
-        recordsBody.textContent = "";
-
-        for (const item of items) {
-          const row = document.createElement("tr");
-
-          row.appendChild(
-            createCell(
-              formatDisplayValue(item.submit_id),
-              "mono"
-            )
-          );
-          row.appendChild(createCell(formatDate(item.created_at)));
-          row.appendChild(createCell("", ""));
-          row.lastChild.appendChild(createStoreTag(item.store_key));
-
-          const titleCell = document.createElement("td");
-          const titleStrong = document.createElement("div");
-          titleStrong.textContent = formatDisplayValue(item.invoice_title);
-          const typeWrap = document.createElement("div");
-          typeWrap.className = "title-meta";
-          typeWrap.appendChild(createTypeTag(item.invoice_type));
-          titleCell.append(titleStrong, typeWrap);
-          row.appendChild(titleCell);
-
-          row.appendChild(createCell(formatDisplayValue(item.tax_number)));
-          row.appendChild(createCell(formatDisplayValue(item.email)));
-
-          const attachmentCell = document.createElement("td");
-          const attachmentLink = document.createElement("a");
-          attachmentLink.className = "attachment-link";
-          attachmentLink.href = `/invoice/api/admin/submissions/${encodeURIComponent(item.id)}/attachment`;
-          attachmentLink.dataset.action = "preview-attachment";
-          attachmentLink.dataset.contentType = item.attachment_content_type || "";
-          attachmentLink.dataset.attachmentName = item.attachment_name || "查看附件";
-          attachmentLink.textContent = item.attachment_name || "查看附件";
-          const attachmentMeta = document.createElement("div");
-          attachmentMeta.className = "muted";
-          attachmentMeta.textContent = [
-            item.attachment_content_type || "",
-            formatBytes(item.attachment_size_bytes),
-          ]
-            .filter(Boolean)
-            .join(" · ");
-          attachmentLink.dataset.attachmentMeta = attachmentMeta.textContent;
-          if (can("attachment:view")) attachmentCell.append(attachmentLink, attachmentMeta); else attachmentCell.textContent = "无附件权限";
-          row.appendChild(attachmentCell);
-
-          row.appendChild(createCell(formatDisplayValue(item.note)));
-          row.appendChild(createCell(formatDisplayValue(item.contact)));
-
-          const actionsCell = document.createElement("td");
-          actionsCell.className = "actions-cell";
-          const deleteButton = document.createElement("button");
-          deleteButton.type = "button";
-          deleteButton.className = "button-danger";
-          deleteButton.dataset.action = "delete";
-          deleteButton.dataset.submissionId = item.id || "";
-          deleteButton.disabled = state.loading || state.deletingIds.has(item.id);
-          deleteButton.textContent = state.deletingIds.has(item.id) ? "删除中..." : "删除";
-          if (can("submission:delete")) actionsCell.appendChild(deleteButton);
-          row.appendChild(actionsCell);
-
-          recordsBody.appendChild(row);
-        }
+        renderDesktopRows(items);
       }
 
       function updateSummary() {
