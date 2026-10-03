@@ -27,10 +27,12 @@ const password = randomBytes(24).toString('base64url');
 try {
 accounts = createAccountStore({ stateDir });
 database = createSessionDatabase({ stateDir });
-const roleIds = ['submit-only', 'accounts-only', 'full', 'store-only', 'staff-only', 'invoice-only', 'no-grants'];
+const roleIds = ['submit-only', 'accounts-only', 'full', 'store-only', 'staff-only', 'invoice-only', 'business-only', 'no-grants'];
 for (const accountId of roleIds) accounts.createAccount({ accountId, username: accountId, password }, { actor: 'isolated-fixture' });
 const grant = (accountId, app, permissions, config) => accounts.putAccess({ accountId, app, role: app === 'expense' ? 'manager' : 'admin', enabled: true, permissions, config }, { actor: 'isolated-fixture', expectedVersion: 0 });
 grant('submit-only', 'expense', ['report:submit'], { viewScope: { ownership: 'self', stores: [], channels: [] }, submitScope: { stores: ['fuzzy'], channels: ['reimbursement_fuzzy_manager'] } });
+grant('business-only', 'business', ['revenue:view'], { viewScope: { ownership: 'any', stores: 'all' } });
+grant('full', 'business', ['revenue:view'], { viewScope: { ownership: 'any', stores: 'all' } });
 grant('full', 'invoice', ['submission:view'], { viewScope: { ownership: 'any', stores: 'all' } });
 grant('full', 'staff', ['employee:view'], { viewScope: { ownership: 'any', stores: 'all' } });
 grant('full', 'store', ['coupon:view'], { viewScope: { ownership: 'any', stores: 'all' } });
@@ -44,7 +46,7 @@ server = http.createServer((request, response) => {
   if (request.url.split('?')[0] === '/mini.html') { response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' }); response.end(portal); return; }
   const route = request.url.split('?')[0];
   const destination = {
-    '/invoice': ['invoice', 'submission:view'], '/staff': ['staff', 'employee:view'],
+    '/business': ['business', 'revenue:view'], '/invoice': ['invoice', 'submission:view'], '/staff': ['staff', 'employee:view'],
     '/store': ['store', 'coupon:view'], '/expense': ['expense', 'report:view'],
     '/expense/submit': ['expense', 'report:submit'],
   }[route];
@@ -107,11 +109,11 @@ server = http.createServer((request, response) => {
   await rejectLogin('submit-only', 'incorrect-password');
   await rejectLogin('submit-only', password, '/invoice');
   checks.push('no-grant and wrong-password accounts cannot enter; business-specific login still enforces its original scope');
-  for (const app of ['store', 'staff', 'invoice']) {
+  for (const app of ['business', 'store', 'staff', 'invoice']) {
     await login(app + '-only');
     assert.deepEqual(await links(), { [app]: '/' + app });
   }
-  checks.push('store-only, staff-only and invoice-only accounts use the same login and retain only their own destination');
+  checks.push('business-only, store-only, staff-only and invoice-only accounts use the same login and retain only their own destination');
   await login('submit-only');
   assert.deepEqual(await links(), { expense: '/expense/submit' });
   assert.match(await page.locator('[data-app="expense"]').innerText(), /提交报账/);
@@ -122,14 +124,17 @@ server = http.createServer((request, response) => {
   await login('accounts-only'); assert.deepEqual(await links(), { accounts: '/auth/accounts' });
   checks.push('management-only account renders accounts entry without business grants');
   await login('full');
-  assert.deepEqual(await links(), { store: '/store', expense: '/expense', invoice: '/invoice', staff: '/staff', accounts: '/auth/accounts' });
+  assert.deepEqual(await links(), { business: '/business', expense: '/expense', invoice: '/invoice', staff: '/staff', store: '/store', accounts: '/auth/accounts' });
+  assert.deepEqual(Object.keys(await links()), ['business', 'expense', 'invoice', 'staff', 'store', 'accounts']);
+  assert.equal((await context.request.get(base + '/business')).status(), 200);
+  await page.locator('[data-app="business"]').click(); assert.equal(new URL(page.url()).pathname, '/business'); await state('authenticated');
   await page.screenshot({ path: path.join(out, 'auth-portal-full.png'), fullPage: true });
-  checks.push('full account renders all four actual destinations and management entry');
+  checks.push('full account renders all five actual destinations and management entry');
   const storeGrant = accounts.getAccess('full', 'store');
   accounts.putAccess({ ...storeGrant, accountId: 'full', enabled: false }, { actor: 'isolated-fixture', expectedVersion: storeGrant.version });
   await page.reload();
   await page.waitForFunction(() => !document.querySelector('[data-app="store"]') && document.querySelector('#management-panel').dataset.state === 'authenticated');
-  assert.equal(Object.keys(await links()).length, 4); checks.push('application revocation removes only the revoked store entry after session refresh');
+  assert.deepEqual(Object.keys(await links()), ['business', 'expense', 'invoice', 'staff', 'accounts']); checks.push('application revocation removes only the revoked store entry after session refresh');
   // A forged foreign Origin must fail without ending this browser session.
   const cookieString = (await context.cookies()).map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
   const invalidLogout = await fetch(base + '/logout', { method: 'POST', redirect: 'manual', headers: { Origin: 'https://untrusted.invalid', Cookie: cookieString, 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'returnTo=%2Finvoice' });

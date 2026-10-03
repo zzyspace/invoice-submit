@@ -49,11 +49,14 @@ if (process.argv.includes("--serve")) {
     assert.equal(await page.locator('#login-link').getAttribute('href'), '/login?returnTo=%2Fmini.html');
     assert.equal(await page.getByRole('heading', { name: '业务管理', exact: true }).count(), 0);
     checks.push("anonymous shows only login guidance; no business links or business heading");
-    await load(session({ store: "/store", expense: "/expense", invoice: "/invoice", staff: "/staff" }, true), "authenticated");
-    assert.equal((await links()).length, 5);
+    await load(session({ store: "/store", expense: "/expense", invoice: "/invoice", staff: "/staff", business: "/business" }, true), "authenticated");
+    assert.deepEqual(await links(), [["business", "/business"], ["expense", "/expense"], ["invoice", "/invoice"], ["staff", "/staff"], ["store", "/store"], ["accounts", "/auth/accounts"]]);
     assert.equal(await page.locator('#session-retry').isVisible(),false);
     assert.equal(await page.getByRole('button',{name:'退出登录',exact:true}).isVisible(),true);
     assert.equal(await page.locator("#login-link").isVisible(), false);
+    await load(session({ business: "/business" }), "authenticated");
+    assert.deepEqual(await links(), [["business", "/business"]]);
+    checks.push("business-only authorization exposes revenue without unrelated apps");
     await load(session({ expense: "/expense/submit" }), "authenticated");
     assert.deepEqual(await links(), [["expense", "/expense/submit"]]);
     assert.equal(await page.locator("#management-grid .entry-title").textContent(), "提交报账");
@@ -64,7 +67,7 @@ if (process.argv.includes("--serve")) {
     assert.deepEqual(await links(), []);
     assert.match(await page.locator("#session-status").textContent(), /暂无可进入/);
     checks.push("accounts-only and empty grants; no implicit role access");
-    await load(session({ store: "https://example.com/", expense: "//example.com/", invoice: "/invoice?token=secret", staff: "javascript:alert(1)", unknown: "/store", accounts: "/auth/accounts" }), "authenticated");
+    await load(session({ store: "https://example.com/", expense: "//example.com/", invoice: "/invoice?token=secret", staff: "javascript:alert(1)", unknown: "/store", accounts: "/auth/accounts", business: "/business?token=secret" }), "authenticated");
     assert.deepEqual(await links(), []);
     checks.push("unrecognized/external/query destinations rejected; accounts flag required");
     await load({ status: 503, body: { success: false } }, "error");
@@ -86,7 +89,7 @@ if (process.argv.includes("--serve")) {
     await load({ status: 401, body: { success: false } }, "anonymous");
     const screenshots = process.env.MINI_SCREENSHOT_DIR || await fs.mkdtemp(path.join(os.tmpdir(), "comeover-mini-browser-"));
     await fs.mkdir(screenshots, { recursive: true });
-    await load(session({ store: '/store', expense: '/expense', invoice: '/invoice', staff: '/staff' }, true), 'authenticated');
+    await load(session({ store: '/store', expense: '/expense', invoice: '/invoice', staff: '/staff', business: '/business' }, true), 'authenticated');
     for (const width of [320, 390, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false, `horizontal overflow at ${width}`);
@@ -95,6 +98,8 @@ if (process.argv.includes("--serve")) {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole("button", { name: "切换到深色模式" }).click();
     assert.equal(await page.locator("html").getAttribute("data-theme"), "dark");
+    assert.equal(await page.locator('[data-app="business"] .entry-mark').evaluate(el => getComputedStyle(el).color), "rgb(167, 139, 250)");
+    assert.equal(await page.locator('[data-app="accounts"] .entry-mark').evaluate(el => getComputedStyle(el).color), "rgb(161, 161, 170)");
     await page.screenshot({ path: path.join(screenshots, "entry-390-dark.png"), fullPage: true });
     await page.reload(); await state("authenticated");
     assert.equal(await page.locator("html").getAttribute("data-theme"), "dark");
