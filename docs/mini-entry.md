@@ -10,6 +10,7 @@
 - 对 gateway 返回的路径使用精确白名单，不接收查询参数、外部域名或未知模块为任意导航目标。新增应用时，先按原架构实现服务端授权，再扩展入口定义；不要根据前端参数授予权限。
 - 页面重新可见、从浏览器历史恢复时重新检查会话。仅入口更新导航；不会刷新正在填写的业务页面。页面不读写登录 Cookie、密码或业务令牌。确认新外壳的小程序环境后，写入无身份信息的界面标记 Cookie，使各后台退出后回到工作台的登录方式选择页；该标记不参与鉴权。普通浏览器仍回到原密码页。
 - 登录、表单、历史、附件、核销等业务仍直接由原网页和接口提供；入口隐藏不是权限检查。
+- 顶栏与主题使用网关的共享后台外壳（`/auth/accounts/admin-shell.*`、`admin-theme.js`、`user-menu.*`），以 `data-admin-center="workbench"` 的品牌模式显示“Workbench”；登录页不显示顶栏，账号菜单只在已登录时显示。页面不再自带主题切换或退出按钮。
 
 ## 构建和测试
 
@@ -21,7 +22,7 @@ PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs npm run test:mini-brows
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs npm run test:mini-gateway
 ```
 
-浏览器检查需要已安装 Playwright 和 Chrome；可以使用环境提供的 Playwright，无需为生产服务新增依赖。`MINI_CHROME_PATH` 可指定 Chrome 可执行文件，默认使用 Playwright 的 chrome channel。截图默认放在临时目录，也可以设置 `MINI_SCREENSHOT_DIR`。
+浏览器检查需要已安装 Playwright 和 Chrome，并读取同级 `admin-auth-gateway/public` 的共享顶栏文件（可用 `MINI_GATEWAY_ROOT` 指定）；可以使用环境提供的 Playwright，无需为生产服务新增依赖。`MINI_CHROME_PATH` 可指定 Chrome 可执行文件，默认使用 Playwright 的 chrome channel。截图默认放在临时目录，也可以设置 `MINI_SCREENSHOT_DIR`。
 
 浏览器检查启动临时本地服务，使用假会话响应，验证未登录引导、授权入口、仅提交账号、恶意目标、服务故障、权限失效、浅深色及 320/390/1440px 布局。这些结果不是微信真机或生产鉴权证明。
 
@@ -37,6 +38,7 @@ node scripts/test-mini-browser.mjs --serve
 
 ## 部署与后续同步
 
+1. 共享顶栏版入口依赖网关 `admin-shell.js` 识别 `workbench`：先发布 `admin-auth-gateway`，再发布本项目的 `public/mini.html`。旧网关会因未知 center 不渲染顶栏（入口仍可用，但没有主题与退出按钮）。
 1. 首次发布单按钮登录引导前，先发布 `admin-auth-gateway` 的工作台回跳支持（精确放行 `/mini.html`，保留原 CSRF、Cookie、限流及各业务权限）；再发布本项目的 `public/mini.html` 并核对源码／生成文件一致。旧网关会将这个 returnTo 回退至开票后台，因此不可只发布新入口。若需回退，应先回退入口，再回退网关。
 2. 由 `server-infra` 发布 `/mini.html` 的精确静态路由与重验证缓存规则。本地继续使用已有 Express 静态服务的 `max-age=0` 与 ETag 重验证，不新增 Node 路由；不得从本项目修改或 reload 共享 Nginx。
 3. 用真实小程序 AppID 配置业务域名并验收。真实校验文件 `public/rWCVyc66DT.txt` 已发布，用户已于 2026-09-23 确认业务域名配置成功；保留原文件名及原字节。

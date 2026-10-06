@@ -8,6 +8,9 @@
   <meta name="robots" content="noindex, nofollow">
   <title>门店工作台</title>
   <!-- Shared production entry. Visual tokens follow public/admin.html; business pages remain canonical. -->
+  <!-- Shared admin top bar and theme, served by admin-auth-gateway. admin-shell.js must precede user-menu.js. -->
+  <link rel="stylesheet" href="/auth/accounts/admin-shell.css">
+  <script src="/auth/accounts/admin-theme.js"></script>
   <style>
       /* Allow touch scrolling without page pinch zoom. */
       html { touch-action: pan-x pan-y; }
@@ -18,25 +21,20 @@
     :root[data-theme="dark"] { color-scheme: dark; --bg: #0d1117; --surface: #1b222d; --line: rgba(235,242,255,.14); --ink: #f2f5f9; --muted: #aab4c3; --brand: #5aa7ff; --soft: rgba(90,167,255,.12); --hover: #263242; --focus: rgba(90,167,255,.4); --surface-muted: rgba(41,51,66,.82); --success: #79e3a6; --success-bg: #193c2b; }
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
-    body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Noto Sans SC",sans-serif; }
+    body { margin: 0; color: var(--ink); font: 15px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Noto Sans SC",sans-serif; }
     a { color: inherit; text-decoration: none; }
     button { font: inherit; color: inherit; }
     button, a { -webkit-tap-highlight-color: transparent; }
     button { cursor: pointer; }
     a:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
     .page { max-width: 1040px; margin: 0 auto; padding: 28px 24px max(32px, env(safe-area-inset-bottom)); }
-    .topbar { display: flex; align-items: center; justify-content: flex-end; gap: 16px; margin-bottom: 36px; }
     .text-button { border: 1px solid var(--line); border-radius: 10px; min-height: 44px; padding: 9px 13px; background: var(--surface); }
-    .topbar-actions { display: flex; align-items: center; gap: 6px; }
-    .logout-form { margin: 0; }
-    .topbar-actions button { min-height: 36px; border: 1px solid transparent; border-radius: 10px; background: var(--surface-muted); }
-    .theme-toggle { display: inline-flex; align-items: center; justify-content: center; width: 36px; min-width: 36px; padding: 0; flex: 0 0 36px; }
-    .theme-icon { display: grid; place-items: center; width: 24px; height: 24px; font-family: "Apple Color Emoji", "Segoe UI Emoji", sans-serif; font-size: 20px; line-height: 1; }
-    .logout-button { display: inline-flex; align-items: center; gap: 6px; padding: 0 9px; font-size: 14px; white-space: nowrap; }
-    .logout-button svg { width: 18px; height: 18px; }
+    /* No top bar on the login screen (or before the session is known); the account control needs a signed-in session. */
+    body:not([data-session="authenticated"]):not([data-session="error"]) > .topbar { display: none; }
+    body:not([data-session="authenticated"]) .topbar :is(.account-menu, .logout-form) { display: none !important; }
     .panel[data-state="authenticated"] #session-badge { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; padding: 6px 10px; border-radius: 999px; background: var(--success-bg); color: var(--success); font-size: 14px; font-weight: 700; }
     .panel[data-state="authenticated"] #session-badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-    .intro { margin-bottom: 26px; }
+    .intro { margin-bottom: 4px; }
     h1 { margin: 0 0 6px; font-size: 30px; line-height: 1.3; letter-spacing: -.025em; }
     .intro p { margin: 0; color: var(--muted); }
     .columns { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start; }
@@ -44,7 +42,11 @@
     .panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 17px; }
     h2 { margin: 0; font-size: 19px; line-height: 1.4; }
     .section-note { font-size: 12px; color: var(--muted); }
-    .entry { display: flex; align-items: center; gap: 13px; min-height: 76px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; overflow-wrap: anywhere; }
+    /* Signed in, the entries sit on the page under the title; the panel card stays for the other states. */
+    .panel[data-state="authenticated"] { background: none; border: 0; border-radius: 0; padding: 0; }
+    .panel[data-state="authenticated"] .panel-heading { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .panel[data-state="authenticated"] .session-status { font-size: 15px; margin-bottom: 20px; }
+    .entry { display: flex; align-items: center; gap: 13px; min-height: 76px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow-wrap: anywhere; }
     .entry:hover { background: var(--hover); }
     .entry-copy { flex: 1; min-width: 0; }
     .entry-title { display: block; font-size: 15px; font-weight: 600; }
@@ -73,25 +75,18 @@
     .panel[data-state="anonymous"] h2 { font-size: 26px; letter-spacing: -.02em; }
     .panel[data-state="anonymous"] .session-status { text-align: center; line-height: 1.75; margin-bottom: 28px; }
     noscript a { color: var(--brand); text-decoration: underline; }
-    @media (max-width: 680px) { .page { padding: 20px 16px max(28px, env(safe-area-inset-bottom)); } .topbar { margin-bottom: 28px; } h1 { font-size: 27px; } .columns { grid-template-columns: 1fr; gap: 16px; } .panel { padding: 20px; } .section-note { font-size: 11px; } }
-    @media (max-width: 350px) { .page { padding-left: 12px; padding-right: 12px; } .panel { padding: 16px; } .entry { padding: 12px; gap: 10px; } }
+    @media (max-width: 680px) { .page { padding: 24px 16px max(28px, env(safe-area-inset-bottom)); } h1 { font-size: 27px; } .columns { grid-template-columns: 1fr; gap: 16px; } .panel:not([data-state="authenticated"]) { padding: 20px; } .section-note { font-size: 11px; } }
+    @media (max-width: 350px) { .page { padding-left: 12px; padding-right: 12px; } .panel:not([data-state="authenticated"]) { padding: 16px; } .entry { padding: 12px; gap: 10px; } }
   </style>
 
-<link rel="stylesheet" href="/auth/accounts/user-menu.css">
-<script src="/auth/accounts/user-menu.js" defer></script>
+  <link rel="stylesheet" href="/auth/accounts/user-menu.css">
+  <script src="/auth/accounts/admin-shell.js" defer></script>
+  <script src="/auth/accounts/user-menu.js" defer></script>
 </head>
 <body>
+  <nav class="topbar" aria-label="后台导航" data-admin-center="workbench" data-admin-mode="brand" data-return-to="/mini.html"></nav>
   <main class="page" data-screen-label="门店工作台">
-    <header class="topbar">
-      <div class="topbar-actions">
-        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="切换到深色模式" aria-pressed="false"><span class="theme-icon" id="theme-icon" aria-hidden="true">🌙</span></button>
-        <form class="logout-form" id="logout-form" method="post" action="/logout" hidden>
-          <input type="hidden" name="returnTo" value="/mini.html">
-          <button class="logout-button" type="submit"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5M15 8l4 4-4 4M19 12H9"></path></svg><span>退出登录</span></button>
-        </form>
-      </div>
-    </header>
-    <div class="intro" id="workbench-intro" hidden><h1>工作台</h1><p>进入你的管理后台。</p></div>
+    <div class="intro" id="workbench-intro" hidden><h1>工作台</h1></div>
     <div class="columns">
       <section class="panel" id="management-panel" data-state="loading" aria-labelledby="management-heading" aria-busy="true">
         <div class="panel-heading"><h2 id="management-heading">正在连接</h2><span class="section-note" id="session-badge">正在确认</span></div>
@@ -122,30 +117,6 @@
         { app: "store", title: "门店管理", description: "优惠券查询、激活与核销", paths: ["/store"] },
         { app: "accounts", title: "账号管理", description: "账号与各后台授权", paths: ["/auth/accounts"] },
       ];
-      const media = window.matchMedia("(prefers-color-scheme: dark)");
-      let savedTheme;
-      try { savedTheme = localStorage.getItem("comeover-admin-theme") ?? localStorage.getItem("comeover-entry-theme"); } catch { /* Optional preference only. */ }
-      if (savedTheme === "light" || savedTheme === "dark") document.documentElement.dataset.theme = savedTheme;
-      function updateThemeLabel() {
-        const isDark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === "dark" : media.matches;
-        $("theme-icon").textContent = isDark ? "☀️" : "🌙";
-        $("theme-toggle").setAttribute("aria-label", isDark ? "切换到浅色模式" : "切换到深色模式");
-        $("theme-toggle").setAttribute("aria-pressed", String(isDark));
-      }
-      $("theme-toggle").addEventListener("click", () => {
-        const next = $("theme-toggle").getAttribute("aria-pressed") === "true" ? "light" : "dark";
-        document.documentElement.dataset.theme = next;
-        try { localStorage.setItem("comeover-admin-theme", next); } catch { /* Storage is not required. */ }
-        updateThemeLabel();
-      });
-      window.addEventListener("storage", event => {
-        if (event.key !== "comeover-admin-theme" || (event.newValue !== "light" && event.newValue !== "dark")) return;
-        document.documentElement.dataset.theme = event.newValue;
-        updateThemeLabel();
-      });
-      if (media.addEventListener) media.addEventListener("change", updateThemeLabel);
-      else if (media.addListener) media.addListener(updateThemeLabel);
-      updateThemeLabel();
 
       function card(entry, href) {
         const link = document.createElement("a");
@@ -164,7 +135,7 @@
         $("management-panel").setAttribute("aria-busy", String(state === "loading"));
         $("session-status").textContent = text; $("session-badge").textContent = badge;
         $("session-retry").hidden = state !== "error";
-        $("logout-form").hidden = state !== "authenticated";
+        document.body.dataset.session = state;
         $("login-link").hidden = state !== "anonymous";
         $("wechat-login").hidden = state !== "anonymous" || !wechatAvailable;
         $("management-grid").hidden = state !== "authenticated";
@@ -234,7 +205,7 @@
             if (!entry.paths.includes(destination)) continue;
             $("management-grid").append(card(entry, destination)); count++;
           }
-          setStatus("authenticated", count ? "以下为当前账号可进入的后台。" : "当前账号暂无可进入的后台，请联系管理员。", "已登录");
+          setStatus("authenticated", count ? `你可以进入以下 ${count} 个后台。` : "当前账号暂无可进入的后台，请联系管理员。", "已登录");
         } catch {
           if (request !== currentRequest) return;
           $("management-grid").replaceChildren();

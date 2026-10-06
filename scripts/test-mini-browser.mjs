@@ -8,6 +8,10 @@ import path from "node:path";
 const html = await fs.readFile(new URL("../public/mini.html", import.meta.url));
 const source = await fs.readFile(new URL("../mini.html", import.meta.url));
 assert.ok(html.equals(source), "mini.html 与 public/mini.html 不一致；请先运行 npm run build，避免验证旧页面。");
+// The shared top bar, theme and account menu come from the sibling gateway checkout.
+const gatewayPublic = path.resolve(process.env.MINI_GATEWAY_ROOT || new URL("../../admin-auth-gateway", import.meta.url).pathname, "public");
+const shellTypes = { "admin-shell.css": "text/css", "admin-shell.js": "text/javascript", "admin-theme.js": "text/javascript", "user-menu.css": "text/css", "user-menu.js": "text/javascript" };
+const shellAssets = Object.fromEntries(await Promise.all(Object.keys(shellTypes).map(async (name) => [name, await fs.readFile(path.join(gatewayPublic, name))])));
 let gateway = { status: 401, body: { success: false } };
 const server = http.createServer((request, response) => {
   response.setHeader("Cache-Control", "no-store");
@@ -16,6 +20,8 @@ const server = http.createServer((request, response) => {
     response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" }); response.end(html);
   } else if (pathname === "/auth/api/session") {
     response.writeHead(gateway.status, { "Content-Type": "application/json" }); response.end(JSON.stringify(gateway.body));
+  } else if (pathname.startsWith("/auth/accounts/") && shellAssets[pathname.slice(15)]) {
+    response.writeHead(200, { "Content-Type": `${shellTypes[pathname.slice(15)]}; charset=utf-8` }); response.end(shellAssets[pathname.slice(15)]);
   } else if (pathname === "/favicon.ico") {
     response.writeHead(204); response.end();
   } else {
@@ -41,18 +47,25 @@ if (process.argv.includes("--serve")) {
     const state = (value) => page.locator(`#management-panel[data-state="${value}"]`).waitFor();
     const links = () => page.locator("#management-grid a").evaluateAll((nodes) => nodes.map((node) => [node.dataset.app, node.getAttribute("href")]));
     const load = async (fixture, expected) => { gateway = fixture; await page.goto(url); await state(expected); };
-    const session = (destinations, canManageAccounts = false) => ({ status: 200, body: { success: true, destinations, canManageAccounts } });
+    const session = (destinations, canManageAccounts = false) => ({ status: 200, body: { success: true, destinations, canManageAccounts, account: { displayName: "测试店长" } } });
     const checks = [];
     await load({ status: 401, body: { success: false } }, "anonymous");
     assert.deepEqual(await links(), []);
     assert.equal(await page.locator('#login-link').isVisible(), true);
     assert.equal(await page.locator('#login-link').getAttribute('href'), '/login?returnTo=%2Fmini.html');
     assert.equal(await page.getByRole('heading', { name: '业务管理', exact: true }).count(), 0);
-    checks.push("anonymous shows only login guidance; no business links or business heading");
+    assert.equal(await page.locator('.topbar').isVisible(), false);
+    checks.push("anonymous shows only login guidance, without the shared top bar");
     await load(session({ store: "/store", expense: "/expense", invoice: "/invoice", staff: "/staff", business: "/business" }, true), "authenticated");
     assert.deepEqual(await links(), [["business", "/business"], ["expense", "/expense"], ["invoice", "/invoice"], ["staff", "/staff"], ["store", "/store"], ["accounts", "/auth/accounts"]]);
     assert.equal(await page.locator('#session-retry').isVisible(),false);
-    assert.equal(await page.getByRole('button',{name:'退出登录',exact:true}).isVisible(),true);
+    assert.equal(await page.locator('.topbar .account-menu-trigger').textContent(), '测试店长');
+    await page.locator('.topbar .account-menu-trigger').click();
+    assert.equal(await page.getByRole('menuitem',{name:'退出登录',exact:true}).isVisible(),true);
+    assert.equal(await page.locator('.topbar input[name="returnTo"]').getAttribute('value'), '/mini.html');
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('.topbar .center-brand').textContent(), 'Workbench');
+    assert.equal(await page.getByRole('heading', { level: 1 }).textContent(), '工作台');
     assert.equal(await page.locator("#login-link").isVisible(), false);
     await load(session({ business: "/business" }), "authenticated");
     assert.deepEqual(await links(), [["business", "/business"]]);
@@ -104,12 +117,12 @@ if (process.argv.includes("--serve")) {
     await page.reload(); await state("authenticated");
     assert.equal(await page.locator("html").getAttribute("data-theme"), "dark");
     checks.push("320/390/1440 layout; dark appearance and preference persistence");
-    gateway = { status: 401, body: { success: false } };
+    gateway = session({ store: "/store" });
     const blockedStorage = await browser.newContext({ viewport: { width: 390, height: 844 } });
     await blockedStorage.addInitScript(() => { Object.defineProperty(window, "localStorage", { get() { throw new Error("Storage unavailable"); } }); });
     const blockedPage = await blockedStorage.newPage();
     blockedPage.on("pageerror", (error) => errors.push(error.message));
-    await blockedPage.goto(url); await blockedPage.locator('#management-panel[data-state="anonymous"]').waitFor();
+    await blockedPage.goto(url); await blockedPage.locator('#management-panel[data-state="authenticated"]').waitFor();
     await blockedPage.getByRole("button", { name: "切换到深色模式" }).click();
     assert.equal(await blockedPage.locator("html").getAttribute("data-theme"), "dark");
     await blockedStorage.close();

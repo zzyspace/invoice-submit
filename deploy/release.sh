@@ -12,6 +12,8 @@ release_prepare() {
   for asset in admin-shell.css admin-shell.js admin-theme.js; do
     expect_status "https://comeover.cn/auth/accounts/$asset" 200
   done
+  # mini.html renders the workbench bar; an older gateway shell would leave it empty.
+  curl -fsS --max-time 15 https://comeover.cn/auth/accounts/admin-shell.js | grep -q 'id: "workbench"'
 }
 
 release_test() {
