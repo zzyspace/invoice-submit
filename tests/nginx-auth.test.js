@@ -5,7 +5,7 @@ import test from "node:test";
 
 const root = path.resolve(import.meta.dirname, "..");
 const nginx = fs.readFileSync(path.join(root, "deploy/nginx/invoice-submit.conf"), "utf8");
-const deployScript = fs.readFileSync(path.join(root, "deploy/deploy-invoice-submit.sh"), "utf8");
+const deployScript = fs.readFileSync(path.join(root, "deploy/release.sh"), "utf8");
 const adminHtml = fs.readFileSync(path.join(root, "public/admin.html"), "utf8");
 
 test("nginx protects invoice page and admin API with the shared gateway", () => {

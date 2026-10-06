@@ -15,7 +15,7 @@
 - `home.html`：COME OVER 品牌主页源码
 - `public/`：构建后的静态资源
 - `server/`：Express 服务、表单校验、SQLite 写入
-- `deploy/deploy-invoice-submit.sh`：一键部署脚本
+- `deploy/release.sh`：comeover 共享部署脚本使用的本项目发布步骤
 - `db/init.sql`：SQLite 初始化 SQL
 - `deploy/nginx/invoice-submit.conf`：迁移前兼容快照；生产配置由 `server-infra` 管理
 - `deploy/systemd/invoice-submit.service`：systemd 服务模板
@@ -97,20 +97,22 @@ git clone https://github.com/zzyspace/invoice-submit.git /opt/invoice-submit/cur
 cd /opt/invoice-submit/current
 ```
 
-4. 执行部署脚本
+4. 后续部署
+
+在 comeover 仓库根目录运行（先 `npm run mirrors:push` 发布镜像）：
 
 ```bash
-sudo bash deploy/deploy-invoice-submit.sh local
+npm run deploy -- invoice-submit
 ```
 
-脚本会自动完成：
+共享脚本 `scripts/deploy-release.sh` 会把已发布的镜像提交部署到 `/opt/invoice-submit/releases/<SHA>`，按 `deploy/release.sh`：
 
-- `git pull --ff-only origin main`
-- `npm install --omit=dev`
-- `npm run build`
-- 安装 `systemd` 服务文件
-- 重启 `invoice-submit.service`
-- 校验 Node 和公网 `healthz`
+- 复用或安装生产依赖，`npm run build`
+- 用 `nobody` 在无生产配置的环境下跑测试
+- 安装 `systemd` 服务文件，切换 `current` 并重启 `invoice-submit.service`
+- 校验 Node 健康接口、公网首页、`/mini.html`、门店填写页和 `/invoice` 登录跳转
+
+任何一步失败都会恢复上一个版本。
 
 手动方式如下。
 
@@ -300,22 +302,17 @@ Node 服务只监听本机：
 
 ## 更新发布
 
-后续每次更新代码：
+在 comeover 仓库根目录：
 
 ```bash
-bash deploy/deploy-invoice-submit.sh root@<server-ip>
+npm run mirrors:push
+npm run deploy -- invoice-submit
 ```
 
 发布后快速验证：
 
 ```bash
 curl https://comeover.cn/health/invoice
-```
-
-如果脚本直接在服务器上执行：
-
-```bash
-sudo bash deploy/deploy-invoice-submit.sh local
 ```
 
 ## 运维手册
