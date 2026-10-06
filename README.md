@@ -302,6 +302,8 @@ Node 服务只监听本机：
 
 ## 更新发布
 
+`/invoice` 后台的顶栏（切换菜单、深浅主题、退出登录）使用网关提供的共享后台外壳 `/auth/accounts/admin-shell.*`，见 admin-auth-gateway README「共享后台外壳」；顶栏改动只需部署网关。发布本项目前需确认网关已提供这些文件（`release_prepare` 会检查）。
+
 在 comeover 仓库根目录：
 
 ```bash

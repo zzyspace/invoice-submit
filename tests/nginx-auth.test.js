@@ -33,29 +33,18 @@ test("nginx serves the COME OVER homepage at the canonical root", () => {
   assert.match(nginx, /location = \/index\.html \{\s*return 404;\s*\}/);
 });
 
-test("invoice admin exposes a POST logout action", () => {
-  assert.match(adminHtml, /<form class="logout-form" method="post" action="\/logout">/);
-  assert.match(adminHtml, /name="returnTo" value="\/invoice"/);
-  assert.match(adminHtml, /<nav class="topbar" aria-label="发票中心导航">/);
-  assert.match(adminHtml, /<span>发票中心<\/span>/);
-  assert.match(adminHtml, /id="center-switcher" hidden/);
-  assert.match(adminHtml, /href="\/expense"/);
-  assert.match(adminHtml, /href="\/invoice" aria-current="page"/);
-  assert.match(adminHtml, /href="\/staff"/);
-  assert.match(adminHtml, /\.center-switcher-option\[aria-current="page"\] \{ background: var\(--brand-soft\); \}/);
-  assert.match(adminHtml, /\.center-switcher-option\[data-management\] svg \{ color: #8e8e93; \}/);
-  assert.match(adminHtml, /:root\[data-theme="dark"\] \.center-switcher-option\[data-management\] svg, :root\[data-theme="dark"\] \.center-switcher-option\[data-center="accounts"\] svg \{ color:#a1a1aa; \}/);
-  assert.match(adminHtml, /\.center-switcher-option\[data-center="business"\] svg \{ color: #a78bfa; \}/);
-  assert.match(adminHtml, /id="center-switcher-chevron"[^>]+hidden/);
-  assert.match(adminHtml, /centerSwitcherChevron\.toggleAttribute\("hidden", centerSwitcherTrigger\.disabled\)/);
-  assert.match(adminHtml, /M8 7V5\.5A2\.5 2\.5 0 0 1 10\.5 3H22/);
-  assert.match(adminHtml, /link\.innerHTML = '[^']+<span>账号管理<\/span><span><\/span>'/);
-  assert.match(adminHtml, /allowed\.includes\(link\.dataset\.center\)/);
-  assert.match(adminHtml, /centerSwitcherBackdrop\.addEventListener\("click"/);
-  assert.match(adminHtml, /id="theme-icon" aria-hidden="true">🌙<\/span>/);
-  assert.match(adminHtml, /themeIcon\.textContent = normalizedTheme === "dark" \? "☀️" : "🌙"/);
-  assert.match(adminHtml, /window\.localStorage\.setItem\(THEME_STORAGE_KEY, normalizedTheme\)/);
-  assert.match(adminHtml, /\.topbar \{[^}]*min-height: 52px;[^}]*border-radius: 13px;/s);
+test("invoice admin uses the shared admin top bar with a POST logout back to /invoice", () => {
+  // The switcher, theme toggle and logout form come from admin-auth-gateway (/auth/accounts/admin-shell.*).
+  assert.match(adminHtml, /<nav class="topbar" aria-label="发票中心导航" data-admin-center="invoice" data-return-to="\/invoice"><\/nav>/);
+  const order = ["/auth/accounts/admin-shell.css", "/auth/accounts/admin-theme.js", "<style>", "/auth/accounts/admin-shell.js", "/auth/accounts/user-menu.js", "<nav class=\"topbar\""].map(text => adminHtml.indexOf(text));
+  assert.ok(order.every(index => index > 0), "shared shell assets and placeholder are present");
+  assert.deepEqual([...order].sort((x, y) => x - y), order, "theme before page styles; admin-shell.js before user-menu.js");
+  // No local copies left to drift from the shared shell.
+  assert.doesNotMatch(adminHtml, /center-switcher|centerSwitcher|theme-toggle|THEME_STORAGE_KEY|invoice-admin-theme/);
+  assert.doesNotMatch(adminHtml, /\.topbar\s*\{/);
+});
+
+test("invoice admin keeps its page layout", () => {
   assert.match(adminHtml, /\.hero \{[^}]*align-content: center;[^}]*min-height: 145px;[^}]*margin: 0 -14px 0;[^}]*padding: 0 48px;/s);
   assert.match(adminHtml, /\.controls-grid \.field select \{[^}]*height: 46px;[^}]*min-height: 46px;[^}]*-webkit-appearance: none;/s);
   assert.match(adminHtml, /background-position:\s*calc\(100% - 18px\) 50%,\s*calc\(100% - 13px\) 50%;/);

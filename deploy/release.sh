@@ -8,6 +8,10 @@ release_prepare() {
   install -d -m 755 /var/lib/invoice-submit/data /var/lib/invoice-submit/uploads
   install_node_modules
   npm run build
+  # The admin top bar comes from admin-auth-gateway; deploy the gateway first.
+  for asset in admin-shell.css admin-shell.js admin-theme.js; do
+    expect_status "https://comeover.cn/auth/accounts/$asset" 200
+  done
 }
 
 release_test() {
