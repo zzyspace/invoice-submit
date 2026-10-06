@@ -27,7 +27,9 @@
     button, a { -webkit-tap-highlight-color: transparent; }
     button { cursor: pointer; }
     a:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
-    .page { max-width: 1040px; margin: 0 auto; padding: 28px 24px max(32px, env(safe-area-inset-bottom)); }
+    .page { max-width: 1040px; margin: 0 auto; padding: 64px 24px max(32px, env(safe-area-inset-bottom)); }
+    /* Login card: same placement as the gateway login page, centered and lifted slightly above the middle. */
+    body[data-session="anonymous"] .page { min-height: 100svh; display: grid; align-content: center; padding: 24px 24px calc(24px + 10vh + env(safe-area-inset-bottom)); }
     .text-button { border: 1px solid var(--line); border-radius: 10px; min-height: 44px; padding: 9px 13px; background: var(--surface); }
     /* No top bar on the login screen (or before the session is known); the account control needs a signed-in session. */
     body:not([data-session="authenticated"]):not([data-session="error"]) > .topbar { display: none; }
@@ -70,13 +72,14 @@
     .login-action.secondary { background: transparent; color: var(--ink); border: 1px solid var(--line); font-weight: 500; }
     .login-action.secondary:hover { background: var(--hover); }
     .login-action:hover { background: #005ec4; }
-    .panel[data-state="anonymous"] { width: 100%; max-width: 440px; margin: clamp(28px, 10vh, 100px) auto 0; padding: 36px 28px; }
+    .panel[data-state="anonymous"] { width: 100%; max-width: 410px; margin: 0 auto; padding: 32px; box-shadow: 0 18px 50px rgba(31,45,70,.12); }
+    :root[data-theme="dark"] .panel[data-state="anonymous"] { box-shadow: none; }
     .panel[data-state="anonymous"] .panel-heading { justify-content: center; margin-bottom: 12px; }
     .panel[data-state="anonymous"] h2 { font-size: 26px; letter-spacing: -.02em; }
     .panel[data-state="anonymous"] .session-status { text-align: center; line-height: 1.75; margin-bottom: 28px; }
     noscript a { color: var(--brand); text-decoration: underline; }
-    @media (max-width: 680px) { .page { padding: 24px 16px max(28px, env(safe-area-inset-bottom)); } h1 { font-size: 27px; } .columns { grid-template-columns: 1fr; gap: 16px; } .panel:not([data-state="authenticated"]) { padding: 20px; } .section-note { font-size: 11px; } }
-    @media (max-width: 350px) { .page { padding-left: 12px; padding-right: 12px; } .panel:not([data-state="authenticated"]) { padding: 16px; } .entry { padding: 12px; gap: 10px; } }
+    @media (max-width: 680px) { .page { padding: 56px 16px max(28px, env(safe-area-inset-bottom)); } h1 { font-size: 27px; } .columns { grid-template-columns: 1fr; gap: 16px; } .panel:not([data-state="authenticated"]):not([data-state="anonymous"]) { padding: 20px; } .section-note { font-size: 11px; } }
+    @media (max-width: 350px) { .page { padding-left: 12px; padding-right: 12px; } .panel:not([data-state="authenticated"]):not([data-state="anonymous"]) { padding: 16px; } .entry { padding: 12px; gap: 10px; } }
   </style>
 
   <link rel="stylesheet" href="/auth/accounts/user-menu.css">
@@ -198,13 +201,20 @@
           const session = await response.json();
           if (request !== currentRequest) return;
           if (session.success !== true || !session.destinations || typeof session.destinations !== "object" || Array.isArray(session.destinations)) throw new Error("Invalid session");
-          let count = 0;
+          const available = [];
           for (const entry of entries) {
             const destination = entry.app === "accounts" ? (session.canManageAccounts === true ? "/auth/accounts" : null) : session.destinations[entry.app];
             // Only canonical, known paths can become links. Roles never imply access.
-            if (!entry.paths.includes(destination)) continue;
-            $("management-grid").append(card(entry, destination)); count++;
+            if (entry.paths.includes(destination)) available.push(card(entry, destination));
           }
+          if (available.length === 1) {
+            // A single admin opens directly; replace keeps Back from bouncing through the workbench.
+            setStatus("loading", "正在进入后台…", "正在进入");
+            location.replace(available[0].getAttribute("href"));
+            return;
+          }
+          $("management-grid").append(...available);
+          const count = available.length;
           setStatus("authenticated", count ? `你可以进入以下 ${count} 个后台。` : "当前账号暂无可进入的后台，请联系管理员。", "已登录");
         } catch {
           if (request !== currentRequest) return;
