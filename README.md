@@ -174,7 +174,7 @@ systemctl restart invoice-submit.service
 
 ## 初始化数据库
 
-数据库会在服务启动时自动执行 [db/init.sql](/Users/ryan/DataDisk/Work/AI/invoice-submit/db/init.sql)。
+数据库会在服务启动时自动执行 [db/init.sql](db/init.sql)。
 
 部署前需要先创建数据目录：
 
@@ -244,7 +244,7 @@ mkdir -p /var/lib/invoice-submit/uploads
 
 参考配置：
 
-- [deploy/nginx/invoice-submit.conf](/Users/ryan/DataDisk/Work/AI/invoice-submit/deploy/nginx/invoice-submit.conf)
+- [deploy/nginx/invoice-submit.conf](deploy/nginx/invoice-submit.conf)
 
 固定要求：
 
@@ -259,7 +259,7 @@ mkdir -p /var/lib/invoice-submit/uploads
 
 参考服务文件：
 
-- [deploy/systemd/invoice-submit.service](/Users/ryan/DataDisk/Work/AI/invoice-submit/deploy/systemd/invoice-submit.service)
+- [deploy/systemd/invoice-submit.service](deploy/systemd/invoice-submit.service)
 
 启用命令：
 
