@@ -14,6 +14,10 @@ release_test() {
   run_isolated node --test tests/*.test.js
 }
 
+release_backup() {
+  backup_sqlite /var/lib/invoice-submit/data/app.db
+}
+
 release_verify() {
   expect_status https://comeover.cn/health/invoice 200
   expect_status https://comeover.cn/ 200
