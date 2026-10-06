@@ -43,7 +43,9 @@ test("invoice admin exposes a POST logout action", () => {
   assert.match(adminHtml, /href="\/invoice" aria-current="page"/);
   assert.match(adminHtml, /href="\/staff"/);
   assert.match(adminHtml, /\.center-switcher-option\[aria-current="page"\] \{ background: var\(--brand-soft\); \}/);
-  assert.match(adminHtml, /\.center-switcher-option\[data-management\] svg \{ color: #a78bfa; \}/);
+  assert.match(adminHtml, /\.center-switcher-option\[data-management\] svg \{ color: #8e8e93; \}/);
+  assert.match(adminHtml, /:root\[data-theme="dark"\] \.center-switcher-option\[data-management\] svg, :root\[data-theme="dark"\] \.center-switcher-option\[data-center="accounts"\] svg \{ color:#a1a1aa; \}/);
+  assert.match(adminHtml, /\.center-switcher-option\[data-center="business"\] svg \{ color: #a78bfa; \}/);
   assert.match(adminHtml, /id="center-switcher-chevron"[^>]+hidden/);
   assert.match(adminHtml, /centerSwitcherChevron\.toggleAttribute\("hidden", centerSwitcherTrigger\.disabled\)/);
   assert.match(adminHtml, /M8 7V5\.5A2\.5 2\.5 0 0 1 10\.5 3H22/);
