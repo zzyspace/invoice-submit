@@ -34,7 +34,9 @@
         --accent-pill-ink: #9f492a;
         --danger-ink: #7a3b28;
         --segment-bg: #f6f6f3;
-        --segment-active-bg: #ffffff;
+        --segment-active-bg: #eef5ff;
+        --segment-active-border: #007aff;
+        --segment-active-ink: #0062cc;
         --focus-ring: rgba(36, 54, 47, 0.28);
         --focus-ring-soft: rgba(36, 54, 47, 0.18);
         --input-bg: #fafaf7;
@@ -86,7 +88,9 @@
           --accent-pill-ink: #ffb340;
           --danger-ink: #ffb340;
           --segment-bg: #2c2c2e;
-          --segment-active-bg: #3a3a3c;
+          --segment-active-bg: rgba(10, 132, 255, 0.18);
+          --segment-active-border: #0a84ff;
+          --segment-active-ink: #64b5ff;
           --focus-ring: rgba(10, 132, 255, 0.52);
           --focus-ring-soft: rgba(10, 132, 255, 0.34);
           --input-bg: #2c2c2e;
@@ -270,13 +274,16 @@
       }
 
       .segmented button {
-        border: 1px solid transparent;
+        position: relative;
+        border: 1.5px solid var(--line);
         border-radius: 16px;
         padding: 14px 16px;
         font: inherit;
         text-align: left;
         background: var(--segment-bg);
-        color: var(--ink);
+        color: var(--ink-soft);
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
       }
 
       .segmented button strong {
@@ -285,9 +292,30 @@
         margin-bottom: 0;
       }
 
+      .segmented button::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: 14px;
+        width: 20px;
+        height: 20px;
+        margin-top: -10px;
+        border-radius: 50%;
+        border: 1.5px solid var(--line-strong);
+        box-sizing: border-box;
+      }
+
       .segmented .active {
         background: var(--segment-active-bg);
-        border-color: var(--line-strong);
+        border-color: var(--segment-active-border);
+        color: var(--segment-active-ink);
+      }
+
+      .segmented .active::after {
+        border: none;
+        background: var(--segment-active-border)
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 10.5l3 3 6-6.5' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+          center / 20px no-repeat;
       }
 
       .segmented button:focus-visible {
