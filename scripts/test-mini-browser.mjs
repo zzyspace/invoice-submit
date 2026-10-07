@@ -82,8 +82,12 @@ if (process.argv.includes("--serve")) {
     await load(session({}), "authenticated");
     assert.deepEqual(await links(), []);
     assert.match(await page.locator("#session-status").textContent(), /暂无可进入/);
-    checks.push("accounts-only and empty grants; no implicit role access");
-    await load(session({ store: "https://example.com/", expense: "//example.com/", invoice: "/invoice?token=secret", staff: "javascript:alert(1)", unknown: "/store", accounts: "/auth/accounts", business: "/business?token=secret" }), "authenticated");
+    await load(session({ store: "/store", design: "/design/" }, true), "authenticated");
+    assert.deepEqual(await links(), [["store", "/store"], ["accounts", "/auth/accounts"], ["design", "/design/"]]);
+    assert.equal(await page.locator("#management-grid > :nth-child(3)").evaluate((element) => element.className), "entry-divider");
+    await opens(session({ design: "/design/" }), "/design/");
+    checks.push("accounts-only and empty grants; no implicit role access; granted design sits last behind a divider");
+    await load(session({ store: "https://example.com/", expense: "//example.com/", invoice: "/invoice?token=secret", staff: "javascript:alert(1)", unknown: "/store", accounts: "/auth/accounts", business: "/business?token=secret", design: "/design" }), "authenticated");
     assert.deepEqual(await links(), []);
     checks.push("unrecognized/external/query destinations rejected; accounts flag required");
     await load({ status: 503, body: { success: false } }, "error");
@@ -105,7 +109,7 @@ if (process.argv.includes("--serve")) {
     await load({ status: 401, body: { success: false } }, "anonymous");
     const screenshots = process.env.MINI_SCREENSHOT_DIR || await fs.mkdtemp(path.join(os.tmpdir(), "comeover-mini-browser-"));
     await fs.mkdir(screenshots, { recursive: true });
-    await load(session({ store: '/store', expense: '/expense', invoice: '/invoice', staff: '/staff', business: '/business' }, true), 'authenticated');
+    await load(session({ store: '/store', expense: '/expense', invoice: '/invoice', staff: '/staff', business: '/business', design: '/design/' }, true), 'authenticated');
     for (const width of [320, 390, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false, `horizontal overflow at ${width}`);
